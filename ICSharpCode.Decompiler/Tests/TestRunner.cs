@@ -40,7 +40,7 @@ namespace ICSharpCode.Decompiler.Tests
 			TestFile(@"..\..\Tests\CallOverloadedMethod.cs");
 		}
 		
-		[Test, Ignore("unncessary primitive casts")]
+		[Test]
 		public void CheckedUnchecked()
 		{
 			TestFile(@"..\..\Tests\CheckedUnchecked.cs");

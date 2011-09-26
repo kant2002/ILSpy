@@ -22,7 +22,7 @@ public class TypeAnalysisTests
 {
 	public byte SubtractFrom256(byte b)
 	{
-		return (byte)(256 - (int)b);
+		return (byte)(256 - b);
 	}
 	
 	#region Shift
