@@ -35,6 +35,7 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 				new PushNegation(),
 				new DelegateConstruction(context),
 				new PatternStatementTransform(context),
+                new OperatorCastRemoval(context),
 				new ReplaceMethodCallsWithOperators(context),
 				new IntroduceUnsafeModifier(),
 				new AddCheckedBlocks(),
