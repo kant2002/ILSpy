@@ -258,6 +258,11 @@ namespace ICSharpCode.Decompiler.Ast.Transforms {
                 returnStatement.Expression = castExp.Expression;
             return null;
         }
+        public override AstNode VisitYieldBreakStatement(YieldBreakStatement yieldBreakStatement, object data) {
+            if(yieldBreakStatement.NextSibling==null && yieldBreakStatement.Parent is BlockStatement && yieldBreakStatement.Parent.Parent is MethodDeclaration)
+                yieldBreakStatement.Remove();
+            return base.VisitYieldBreakStatement(yieldBreakStatement, data);
+        }
 
         private static readonly string[] baseTypes = new[]
         { "sbyte", "byte", "short", "ushort", "int", "uint", "long", "ulong", "float", "double", "decimal","char" };
