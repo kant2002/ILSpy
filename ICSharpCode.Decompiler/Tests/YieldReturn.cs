@@ -30,7 +30,8 @@ public static class YieldReturn
 	
 	public static IEnumerable<int> YieldReturnInLoop()
 	{
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 100; i++)
+		{
 			yield return i;
 		}
 	}
@@ -38,9 +39,12 @@ public static class YieldReturn
 	public static IEnumerable<int> YieldReturnWithTryFinally()
 	{
 		yield return 0;
-		try {
+		try
+		{
 			yield return 1;
-		} finally {
+		}
+		finally
+		{
 			Console.WriteLine("Finally!");
 		}
 		yield return 2;
@@ -48,14 +52,16 @@ public static class YieldReturn
 	
 	public static IEnumerable<int> YieldReturnInLock1(object o)
 	{
-		lock (o) {
+		lock (o)
+		{
 			yield return 1;
 		}
 	}
 	
 	public static IEnumerable<int> YieldReturnInLock2(object o)
 	{
-		lock (o) {
+		lock (o)
+		{
 			yield return 1;
 			o = null;
 			yield return 2;
@@ -67,26 +73,34 @@ public static class YieldReturn
 		Console.WriteLine("Start of method - 1");
 		yield return "Start of method";
 		Console.WriteLine("Start of method - 2");
-		try {
+		try
+		{
 			Console.WriteLine("Within outer try - 1");
 			yield return "Within outer try";
 			Console.WriteLine("Within outer try - 2");
-			try {
+			try
+			{
 				Console.WriteLine("Within inner try - 1");
 				yield return "Within inner try";
 				Console.WriteLine("Within inner try - 2");
 				if (breakInMiddle)
+				{
 					yield break;
+				}
 				Console.WriteLine("End of inner try - 1");
 				yield return "End of inner try";
 				Console.WriteLine("End of inner try - 2");
-			} finally {
+			}
+			finally
+			{
 				Console.WriteLine("Inner Finally");
 			}
 			Console.WriteLine("End of outer try - 1");
 			yield return "End of outer try";
 			Console.WriteLine("End of outer try - 2");
-		} finally {
+		}
+		finally
+		{
 			Console.WriteLine("Outer Finally");
 		}
 		Console.WriteLine("End of method - 1");
@@ -97,12 +111,16 @@ public static class YieldReturn
 	public static IEnumerable<string> YieldReturnWithTwoNonNestedFinallyBlocks(IEnumerable<string> input)
 	{
 		// outer try-finally block
-		foreach (string line in input) {
+		foreach (string current in input)
+		{
 			// nested try-finally block
-			try {
-				yield return line;
-			} finally {
-				Console.WriteLine("Processed " + line);
+			try
+			{
+				yield return current;
+			}
+			finally
+			{
+				Console.WriteLine("Processed " + current);
 			}
 		}
 		yield return "A";
@@ -112,30 +130,37 @@ public static class YieldReturn
 		yield return "E";
 		yield return "F";
 		// outer try-finally block
-		foreach (string line in input)
-			yield return line.ToUpper();
+		foreach (string current2 in input)
+		{
+			yield return current2.ToUpper();
+		}
 	}
 	
 	public static IEnumerable<Func<string>> YieldReturnWithAnonymousMethods1(IEnumerable<string> input)
 	{
-		foreach (string line in input) {
-			yield return () => line;
+		foreach (string current in input)
+		{
+			yield return () => current;
 		}
 	}
 	
 	public static IEnumerable<Func<string>> YieldReturnWithAnonymousMethods2(IEnumerable<string> input)
 	{
-		foreach (string line in input) {
-			string copy = line;
+		foreach (string current in input)
+		{
+			string copy = current;
 			yield return () => copy;
 		}
 	}
 	
 	public static IEnumerable<int> GetEvenNumbers(int n)
 	{
-		for (int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++)
+		{
 			if (i % 2 == 0)
+			{
 				yield return i;
+			}
 		}
 	}
 	
