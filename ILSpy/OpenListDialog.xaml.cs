@@ -44,7 +44,8 @@ namespace ICSharpCode.ILSpy
 		private void listView_Loaded(object sender, RoutedEventArgs e)
 		{
 			listView.ItemsSource = manager.AssemblyLists;
-			CreateDefaultAssemblyLists();
+			if (manager.AssemblyLists.Count == 0)
+				CreateDefaultAssemblyLists();
 		}
 
 		void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -68,6 +69,11 @@ namespace ICSharpCode.ILSpy
 
 		private void CreateDefaultAssemblyLists()
 		{
+			if (!manager.AssemblyLists.Contains(AssemblyListManager.DefaultListName))
+			{
+				manager.CreateList(new AssemblyList(AssemblyListManager.DefaultListName));
+			}
+
 			if (!manager.AssemblyLists.Contains(DotNet4List))
 			{
 				AssemblyList dotnet4 = new AssemblyList(DotNet4List);
@@ -181,11 +187,23 @@ namespace ICSharpCode.ILSpy
 				manager.DeleteList(listView.SelectedItem.ToString());
 		}
 
-    private void listView_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
-    {
-      if (e.ChangedButton == MouseButton.Left && listView.SelectedItem != null)
-        this.DialogResult = true;
-    }
+		private void ResetButton_Click(object sender, RoutedEventArgs e)
+		{
+			manager.AssemblyLists.Clear();
+			ILSpySettings.Update(root => root.Element("AssemblyLists").Remove());
+			MainWindow.Instance.ResetCurrentAssembly();
+
+			//manager.LoadList(ILSpySettings.EmptySettings, AssemblyListManager.DefaultListName);
+			CreateDefaultAssemblyLists();
+
+			listView.SelectedIndex = 0;
+		}
+
+        private void listView_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+			if (e.ChangedButton == MouseButton.Left && listView.SelectedItem != null)
+				this.DialogResult = true;
+		}
 
 	}
 }

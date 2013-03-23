@@ -65,6 +65,8 @@ namespace ICSharpCode.ILSpy
 			XElement firstList = doc.Elements("List").FirstOrDefault();
 			if (firstList != null)
 				return new AssemblyList(firstList);
+			else if (doc.Elements("List").Count() == 0)
+				return new AssemblyList(DefaultListName);
 			else
 				return new AssemblyList(listName ?? DefaultListName);
 		}

@@ -32,6 +32,8 @@ namespace ICSharpCode.ILSpy
 	{
 		readonly XElement root;
 		
+		public static readonly ILSpySettings EmptySettings = new ILSpySettings();
+
 		ILSpySettings()
 		{
 			this.root = new XElement("ILSpy");
