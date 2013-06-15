@@ -104,12 +104,26 @@ namespace ICSharpCode.ILSpy.TreeNodes
 				return;
 			}
 
-			string entryType = entry.Value.GetType().FullName;
-			if (entry.Value is System.Globalization.CultureInfo) {
-				otherEntries.Add(new SerializedObjectRepresentation(keyString, entryType, ((System.Globalization.CultureInfo)entry.Value).DisplayName));
-			} else {
-				otherEntries.Add(new SerializedObjectRepresentation(keyString, entryType, entry.Value.ToString()));
-			}
+            if (entry.Value == null)
+            {
+                // For null values we have to do attempt to dynamic discover type.
+                // One of strategy is lookup for the type which is associated with this resource
+                // for example form or control and from the type itself find the type of the property.
+                // For now default all values to the System.String type, which sometimes is incorrect.
+                otherEntries.Add(new SerializedObjectRepresentation(keyString, "System.String", null));
+            }
+            else
+            {
+                string entryType = entry.Value.GetType().FullName;
+                if (entry.Value is System.Globalization.CultureInfo)
+                {
+                    otherEntries.Add(new SerializedObjectRepresentation(keyString, entryType, ((System.Globalization.CultureInfo)entry.Value).DisplayName));
+                }
+                else
+                {
+                    otherEntries.Add(new SerializedObjectRepresentation(keyString, entryType, entry.Value.ToString()));
+                }
+            }
 		}
 
 		public override void Decompile(Language language, ITextOutput output, DecompilationOptions options)
