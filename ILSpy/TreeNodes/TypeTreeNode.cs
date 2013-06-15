@@ -89,6 +89,31 @@ namespace ICSharpCode.ILSpy.TreeNodes
 				return FilterResult.Recurse;
 			}
 		}
+
+        /// <summary>
+        /// Find node for the given member.
+        /// </summary>
+        /// <param name="member">Member for which to find corresponding child node.</param>
+        /// <returns>A mode which represents the given memeber.</returns>
+        public IMemberTreeNode FindMemberNode(MemberReference member)
+        {
+            this.EnsureLazyChildren();
+            foreach (var node in this.Children)
+            {
+                var memberNode = node as IMemberTreeNode;
+                if (memberNode == null)
+                {
+                    continue;
+                }
+
+                if (memberNode.Member == member)
+                {
+                    return memberNode;
+                }
+            }
+
+            return null;
+        }
 		
 		protected override void LoadChildren()
 		{

@@ -278,4 +278,66 @@ namespace ICSharpCode.ILSpy.TreeNodes
 			}
 		}
 	}
+
+    /// <summary>
+    /// Command which selects entry point in the selected assembly.
+    /// </summary>
+    [ExportContextMenuEntryAttribute(Header = "Go to entry point")]
+    internal sealed class GoToEntryPoint : IContextMenuEntry
+    {
+        /// <summary>
+        /// Checks whether command is visible within given context.
+        /// </summary>
+        /// <param name="context">A <see cref="TextViewContext"/> where check for command status.</param>
+        public bool IsVisible(TextViewContext context)
+        {
+            if (context.SelectedTreeNodes == null)
+                return false;
+            if (context.SelectedTreeNodes.Length != 1)
+            {
+                return false;
+            }
+
+            var assemblyTreeNode = context.SelectedTreeNodes[0] as AssemblyTreeNode;
+            if (assemblyTreeNode == null)
+            {
+                return false;
+            }
+
+            return assemblyTreeNode.LoadedAssembly.ModuleDefinition.EntryPoint != null;
+        }
+
+        /// <summary>
+        /// Checks whether command is enabled within given context.
+        /// </summary>
+        /// <param name="context">A <see cref="TextViewContext"/> where check for command status.</param>
+        public bool IsEnabled(TextViewContext context)
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Executes the command withinn given tree view context.
+        /// </summary>
+        /// <param name="context">A <see cref="TextViewContext"/> within which to execute command.</param>
+        public void Execute(TextViewContext context)
+        {
+            if (context.SelectedTreeNodes == null)
+            {
+                return;
+            }
+
+            var assemblyTreeNode = context.SelectedTreeNodes[0] as AssemblyTreeNode;
+            if (assemblyTreeNode == null)
+            {
+                return;
+            }
+
+            var entryPoint = assemblyTreeNode.LoadedAssembly.ModuleDefinition.EntryPoint;
+            var typeNode = assemblyTreeNode.FindTypeNode(assemblyTreeNode.LoadedAssembly.ModuleDefinition.EntryPoint.DeclaringType);
+            var entryPointNode = (SharpTreeNode)typeNode.FindMemberNode(entryPoint);
+            context.TreeView.FocusNode(entryPointNode);
+            context.TreeView.SelectedItem = entryPointNode;
+        }
+    }
 }
