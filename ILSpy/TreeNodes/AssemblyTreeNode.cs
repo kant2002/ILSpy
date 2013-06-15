@@ -304,7 +304,13 @@ namespace ICSharpCode.ILSpy.TreeNodes
                 return false;
             }
 
-            return assemblyTreeNode.LoadedAssembly.ModuleDefinition.EntryPoint != null;
+            var loadedAssembly = assemblyTreeNode.LoadedAssembly;
+            if (!loadedAssembly.IsLoaded || loadedAssembly.HasLoadError)
+            {
+                return false;
+            }
+
+            return loadedAssembly.ModuleDefinition.EntryPoint != null;
         }
 
         /// <summary>
