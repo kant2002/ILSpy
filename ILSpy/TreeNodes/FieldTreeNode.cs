@@ -44,7 +44,11 @@ namespace ICSharpCode.ILSpy.TreeNodes
 
 		public override object Text
 		{
-			get { return HighlightSearchMatch(field.Name, " : " + this.Language.TypeToString(field.FieldType, false, field)); }
+            get 
+            {
+                var fieldType = this.Language.TypeToString(field.FieldType, false, field);
+                return HighlightSearchMatch(UnicodeSupport.FormatUnicodeIdentifier(field.Name), " : " + UnicodeSupport.FormatUnicodeIdentifier(fieldType));
+            }
 		}
 
 		public override object Icon

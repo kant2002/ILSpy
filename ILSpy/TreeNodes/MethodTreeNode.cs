@@ -59,7 +59,8 @@ namespace ICSharpCode.ILSpy.TreeNodes
 			for (int i = 0; i < method.Parameters.Count; i++) {
 				if (i > 0)
 					b.Append(", ");
-				b.Append(language.TypeToString(method.Parameters[i].ParameterType, false, method.Parameters[i]));
+                var parameterType = language.TypeToString(method.Parameters[i].ParameterType, false, method.Parameters[i]);
+                b.Append(UnicodeSupport.FormatUnicodeIdentifier(parameterType));
 			}
 			if (method.CallingConvention == MethodCallingConvention.VarArg) {
 				if (method.HasParameters)
@@ -67,8 +68,9 @@ namespace ICSharpCode.ILSpy.TreeNodes
 				b.Append("...");
 			}
 			b.Append(") : ");
-			b.Append(language.TypeToString(method.ReturnType, false, method.MethodReturnType));
-			return HighlightSearchMatch(method.Name, b.ToString());
+            var returnType = language.TypeToString(method.ReturnType, false, method.MethodReturnType);
+			b.Append(UnicodeSupport.FormatUnicodeIdentifier(returnType));
+			return HighlightSearchMatch(UnicodeSupport.FormatUnicodeIdentifier(method.Name), b.ToString());
 		}
 
 		public override object Icon

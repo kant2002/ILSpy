@@ -41,7 +41,7 @@ namespace ICSharpCode.ILSpy.TreeNodes
 		}
 		
 		public override object Text {
-			get { return HighlightSearchMatch(name.Length == 0 ? "-" : name); }
+			get { return HighlightSearchMatch(name.Length == 0 ? "-" : UnicodeSupport.FormatUnicodeIdentifier(name)); }
 		}
 		
 		public override object Icon {
@@ -50,7 +50,7 @@ namespace ICSharpCode.ILSpy.TreeNodes
 		
 		public override FilterResult Filter(FilterSettings settings)
 		{
-			if (settings.SearchTermMatches(name))
+			if (settings.SearchTermMatches(this.name))
 				return FilterResult.MatchAndRecurse;
 			else
 				return FilterResult.Recurse;

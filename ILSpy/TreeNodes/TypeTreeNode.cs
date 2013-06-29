@@ -59,7 +59,7 @@ namespace ICSharpCode.ILSpy.TreeNodes
 		}
 		
 		public override object Text {
-			get { return HighlightSearchMatch(this.Language.FormatTypeName(type)); }
+			get { return HighlightSearchMatch(UnicodeSupport.FormatUnicodeIdentifier(this.Language.FormatTypeName(type))); }
 		}
 		
 		public override bool IsPublicAPI {
@@ -80,7 +80,9 @@ namespace ICSharpCode.ILSpy.TreeNodes
 		{
 			if (!settings.ShowInternalApi && !IsPublicAPI)
 				return FilterResult.Hidden;
-			if (settings.SearchTermMatches(type.Name)) {
+            var searchableName = UnicodeSupport.FormatUnicodeIdentifier(type.Name);
+            if (settings.SearchTermMatches(searchableName))
+            {
 				if (settings.Language.ShowMember(type))
 					return FilterResult.Match;
 				else

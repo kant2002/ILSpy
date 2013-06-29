@@ -286,7 +286,7 @@ namespace ICSharpCode.ILSpy
 			
 			void PerformSearch(TypeDefinition type)
 			{
-				if (searchMode == SearchMode_Type && IsMatch(type.Name)) {
+				if (searchMode == SearchMode_Type && IsMatch(UnicodeSupport.FormatUnicodeIdentifier(type.Name))) {
 					AddResult(new SearchResult {
 					          	Member = type,
 					          	Image = TypeTreeNode.GetIcon(type),
