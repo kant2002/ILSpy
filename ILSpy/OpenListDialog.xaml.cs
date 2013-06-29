@@ -30,7 +30,7 @@ namespace ICSharpCode.ILSpy
 	{
 
         public const string DotNet45List = ".NET 4.5 (WinRT)";
-        public const string DotNet4List = ".NET 4 (WPF)";
+		public const string DotNet4List = ".NET 4 (WPF)";
 		public const string DotNet35List = ".NET 3.5";
 		public const string ASPDotNetMVC3List = "ASP.NET (MVC3)";
 
@@ -69,40 +69,12 @@ namespace ICSharpCode.ILSpy
 
 		private void CreateDefaultAssemblyLists()
 		{
-
-			if (!manager.AssemblyLists.Contains(DotNet45List))
-			{
-				AssemblyList dotnet45 = new AssemblyList(DotNet45List);
-				AddToList(dotnet45, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
-				AddToList(dotnet45, "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
-				AddToList(dotnet45, "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
-				AddToList(dotnet45, "System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
-				AddToList(dotnet45, "Microsoft.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
-				AddToList(dotnet45, "Windows.ApplicationModel");
-				AddToList(dotnet45, "Windows.Data");
-				AddToList(dotnet45, "Windows.Devices");
-				AddToList(dotnet45, "Windows.Foundation");
-				AddToList(dotnet45, "Windows.Globalization");
-				AddToList(dotnet45, "Windows.Graphics");
-				AddToList(dotnet45, "Windows.Management");
-				AddToList(dotnet45, "Windows.Media");
-				AddToList(dotnet45, "Windows.Networking");
-				AddToList(dotnet45, "Windows.Security");
-				AddToList(dotnet45, "Windows.Storage");
-				AddToList(dotnet45, "Windows.System");
-				AddToList(dotnet45, "Windows.UI");
-				AddToList(dotnet45, "Windows.UI.Xaml");
-				AddToList(dotnet45, "Windows.Web");
-
-
-				if (dotnet45.assemblies.Count > 0)
-				{
-					manager.CreateList(dotnet45);
-				}
-			}
-
-
-			if (!manager.AssemblyLists.Contains(DotNet4List))
+            if (!manager.AssemblyLists.Contains(AssemblyListManager.DefaultListName))
+            {
+                manager.CreateList(new AssemblyList(AssemblyListManager.DefaultListName));
+            } 
+            
+            if (!manager.AssemblyLists.Contains(DotNet4List))
 			{
 				AssemblyList dotnet4 = new AssemblyList(DotNet4List);
 				AddToList(dotnet4, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
@@ -213,6 +185,18 @@ namespace ICSharpCode.ILSpy
 		{
 			if (listView.SelectedItem != null)
 				manager.DeleteList(listView.SelectedItem.ToString());
+		}
+
+		private void ResetButton_Click(object sender, RoutedEventArgs e)
+		{
+			manager.AssemblyLists.Clear();
+			ILSpySettings.Update(root => root.Element("AssemblyLists").Remove());
+			MainWindow.Instance.ResetCurrentAssembly();
+
+			//manager.LoadList(ILSpySettings.EmptySettings, AssemblyListManager.DefaultListName);
+			CreateDefaultAssemblyLists();
+
+			listView.SelectedIndex = 0;
 		}
 
     private void listView_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)

@@ -310,12 +310,6 @@ namespace ICSharpCode.ILSpy
 			
 			HandleCommandLineArguments(App.CommandLineArguments);
 			
-			if (assemblyList.GetAssemblies().Length == 0
-			    && assemblyList.ListName == AssemblyListManager.DefaultListName)
-			{
-				LoadInitialAssemblies();
-			}
-			
 			ShowAssemblyList(this.assemblyList);
 			
 			HandleCommandLineArgumentsAfterShowList(App.CommandLineArguments);
@@ -408,7 +402,13 @@ namespace ICSharpCode.ILSpy
 		{
 			history.Clear();
 			this.assemblyList = assemblyList;
-			
+
+			if (assemblyList.GetAssemblies().Length == 0
+			    && assemblyList.ListName == AssemblyListManager.DefaultListName)
+			{
+				LoadInitialAssemblies();
+			}
+
 			assemblyList.assemblies.CollectionChanged += assemblyList_Assemblies_CollectionChanged;
 			
 			assemblyListTreeNode = new AssemblyListTreeNode(assemblyList);
@@ -624,6 +624,12 @@ namespace ICSharpCode.ILSpy
 		{
 			SearchPane.Instance.Show();
 		}
+
+		public void ResetCurrentAssembly()
+		{
+			assemblyList = new AssemblyList(string.Empty);
+		}
+
 		#endregion
 		
 		#region Decompile (TreeView_SelectionChanged)
