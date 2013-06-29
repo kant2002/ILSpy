@@ -306,20 +306,20 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 				Match displayClassAssignmentMatch = displayClassAssignmentPattern.Match(stmt);
 				if (!displayClassAssignmentMatch.Success)
 					continue;
-				
-				ILVariable variable = displayClassAssignmentMatch.Get<AstNode>("variable").Single().Annotation<ILVariable>();
+
+                ILVariable variable = displayClassAssignmentMatch.Single<AstNode>("variable").Annotation<ILVariable>();
 				if (variable == null)
 					continue;
 				TypeDefinition type = variable.Type.ResolveWithinSameModule();
 				if (!IsPotentialClosure(context, type))
 					continue;
-				if (displayClassAssignmentMatch.Get<AstType>("type").Single().Annotation<TypeReference>().ResolveWithinSameModule() != type)
+                if (displayClassAssignmentMatch.Single<AstType>("type").Annotation<TypeReference>().ResolveWithinSameModule() != type)
 					continue;
 				
 				// Looks like we found a display class creation. Now let's verify that the variable is used only for field accesses:
 				bool ok = true;
 				foreach (var identExpr in blockStatement.Descendants.OfType<IdentifierExpression>()) {
-					if (identExpr.Identifier == variable.Name && identExpr != displayClassAssignmentMatch.Get("variable").Single()) {
+					if (identExpr.Identifier == variable.Name && identExpr != displayClassAssignmentMatch.Single<INode>("variable")) {
 						if (!(identExpr.Parent is MemberReferenceExpression && identExpr.Parent.Annotation<FieldReference>() != null))
 							ok = false;
 					}
@@ -358,8 +358,8 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 					);
 					Match m = closureFieldAssignmentPattern.Match(cur);
 					if (m.Success) {
-						FieldDefinition fieldDef = m.Get<MemberReferenceExpression>("left").Single().Annotation<FieldReference>().ResolveWithinSameModule();
-						AstNode right = m.Get<AstNode>("right").Single();
+                        FieldDefinition fieldDef = m.Single<MemberReferenceExpression>("left").Annotation<FieldReference>().ResolveWithinSameModule();
+                        AstNode right = m.Single<AstNode>("right");
 						bool isParameter = false;
 						bool isDisplayClassParentPointerAssignment = false;
 						if (right is ThisReferenceExpression) {
@@ -376,7 +376,7 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 						} else if (right is MemberReferenceExpression) {
 							// copy of parent display class reference from an outer lambda
 							// closure2.localsX = this.localsY
-							MemberReferenceExpression mre = m.Get<MemberReferenceExpression>("right").Single();
+                            MemberReferenceExpression mre = m.Single<MemberReferenceExpression>("right");
 							do {
 								// descend into the targets of the mre as long as the field types are closures
 								FieldDefinition fieldDef2 = mre.Annotation<FieldReference>().ResolveWithinSameModule();

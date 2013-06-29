@@ -1170,7 +1170,7 @@ namespace ICSharpCode.NRefactory.VB.Visitors
 			var match = counterLoop.Match(forStatement);
 			
 			if (match.Success) {
-				var init = match.Get<CSharp.Statement>("iteratorVar").SingleOrDefault();
+                var init = match.SingleOrDefault<CSharp.Statement>("iteratorVar");
 				
 				AstNode iteratorVariable;
 				
@@ -1186,9 +1186,9 @@ namespace ICSharpCode.NRefactory.VB.Visitors
 				} else goto end;
 				
 				Expression toExpr = Expression.Null;
-				
-				var cond = match.Get<CSharp.BinaryOperatorExpression>("condition").SingleOrDefault();
-				var endExpr = (Expression)match.Get<CSharp.Expression>("endExpr").SingleOrDefault().AcceptVisitor(this, data);
+
+                var cond = match.SingleOrDefault<CSharp.BinaryOperatorExpression>("condition");
+                var endExpr = (Expression)match.SingleOrDefault<CSharp.Expression>("endExpr").AcceptVisitor(this, data);
 				
 				if (cond.Operator == CSharp.BinaryOperatorType.LessThanOrEqual ||
 				    cond.Operator == CSharp.BinaryOperatorType.GreaterThanOrEqual) {
@@ -1201,9 +1201,9 @@ namespace ICSharpCode.NRefactory.VB.Visitors
 					toExpr = new BinaryOperatorExpression(endExpr, BinaryOperatorType.Add, new PrimitiveExpression(1));
 				
 				Expression stepExpr = Expression.Null;
-				
-				var increment = match.Get<CSharp.AssignmentExpression>("increment").SingleOrDefault();
-				var factorExpr = (Expression)match.Get<CSharp.Expression>("factor").SingleOrDefault().AcceptVisitor(this, data);
+
+                var increment = match.SingleOrDefault<CSharp.AssignmentExpression>("increment");
+                var factorExpr = (Expression)match.SingleOrDefault<CSharp.Expression>("factor").AcceptVisitor(this, data);
 				
 				if (increment.Operator == CSharp.AssignmentOperatorType.Add && (factorExpr is PrimitiveExpression && !IsEqual(((PrimitiveExpression)factorExpr).Value, 1)))
 					stepExpr = factorExpr;
@@ -1214,7 +1214,7 @@ namespace ICSharpCode.NRefactory.VB.Visitors
 					Variable = iteratorVariable,
 					ToExpression = toExpr,
 					StepExpression = stepExpr,
-					Body = (BlockStatement)match.Get<CSharp.Statement>("body").Single().AcceptVisitor(this, data)
+                    Body = (BlockStatement)match.Single<CSharp.Statement>("body").AcceptVisitor(this, data)
 				};
 			}
 			
@@ -1692,8 +1692,7 @@ namespace ICSharpCode.NRefactory.VB.Visitors
 				.FirstOrDefault(r => r.Success);
 			
 			if (result.Success && result.Has("alias")) {
-				return result.Get<CSharp.PrimitiveExpression>("alias")
-					.First().Value.ToString();
+                return result.First<CSharp.PrimitiveExpression>("alias").Value.ToString();
 			}
 			
 			return null;
@@ -1717,7 +1716,8 @@ namespace ICSharpCode.NRefactory.VB.Visitors
 				.FirstOrDefault(r => r.Success);
 			
 			if (result.Success && result.Has("modifier")) {
-				switch (result.Get<CSharp.MemberReferenceExpression>("modifier").First().MemberName) {
+                switch (result.First<CSharp.MemberReferenceExpression>("modifier").MemberName)
+                {
 					case "Auto":
 						return CharsetModifier.Auto;
 					case "Ansi":

@@ -802,17 +802,17 @@ namespace ICSharpCode.Decompiler.Ast
 						for (int i = 1; i < args.Count; i++) {
 							Match m = objectInitializerPattern.Match(args[i]);
 							if (m.Success) {
-								MemberReferenceExpression mre = m.Get<MemberReferenceExpression>("left").Single();
+								MemberReferenceExpression mre = m.Single<MemberReferenceExpression>("left");
 								initializer.Elements.Add(
 									new NamedExpression {
 										Name = mre.MemberName,
-										Expression = m.Get<Expression>("right").Single().Detach()
+                                        Expression = m.Single<Expression>("right").Detach()
 									}.CopyAnnotationsFrom(mre));
 							} else {
 								m = collectionInitializerPattern.Match(args[i]);
 								if (m.Success) {
 									if (m.Get("arg").Count() == 1) {
-										initializer.Elements.Add(m.Get<Expression>("arg").Single().Detach());
+                                        initializer.Elements.Add(m.Single<Expression>("arg").Detach());
 									} else {
 										ArrayInitializerExpression argList = new ArrayInitializerExpression();
 										foreach (var expr in m.Get<Expression>("arg")) {

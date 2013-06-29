@@ -268,8 +268,8 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 			Match m = getFieldFromHandlePattern.Match(fieldInfoExpr);
 			if (!m.Success)
 				return NotSupported(invocation);
-			
-			FieldReference fr = m.Get<AstNode>("field").Single().Annotation<FieldReference>();
+
+            FieldReference fr = m.Single<AstNode>("field").Annotation<FieldReference>();
 			if (fr == null)
 				return null;
 			
@@ -277,7 +277,7 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 			Expression convertedTarget;
 			if (target is NullReferenceExpression) {
 				if (m.Has("declaringType"))
-					convertedTarget = new TypeReferenceExpression(m.Get<AstType>("declaringType").Single().Clone());
+                    convertedTarget = new TypeReferenceExpression(m.Single<AstType>("declaringType").Clone());
 				else
 					convertedTarget = new TypeReferenceExpression(AstBuilder.ConvertType(fr.DeclaringType));
 			} else {
@@ -306,8 +306,8 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 			Match m = getMethodFromHandlePattern.Match(invocation.Arguments.ElementAt(1));
 			if (!m.Success)
 				return NotSupported(invocation);
-			
-			MethodReference mr = m.Get<AstNode>("method").Single().Annotation<MethodReference>();
+
+            MethodReference mr = m.Single<AstNode>("method").Annotation<MethodReference>();
 			if (mr == null)
 				return null;
 			
@@ -315,7 +315,7 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 			Expression convertedTarget;
 			if (target is NullReferenceExpression) {
 				if (m.Has("declaringType"))
-					convertedTarget = new TypeReferenceExpression(m.Get<AstType>("declaringType").Single().Clone());
+                    convertedTarget = new TypeReferenceExpression(m.Single<AstType>("declaringType").Clone());
 				else
 					convertedTarget = new TypeReferenceExpression(AstBuilder.ConvertType(mr.DeclaringType));
 			} else {
@@ -356,8 +356,8 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 				target = invocation.Arguments.ElementAt(0);
 				firstArgumentPosition = 2;
 			}
-			
-			MethodReference mr = m.Get<AstNode>("method").Single().Annotation<MethodReference>();
+
+            MethodReference mr = m.Single<AstNode>("method").Annotation<MethodReference>();
 			if (mr == null)
 				return null;
 			
@@ -365,7 +365,7 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 			if (target == null || target is NullReferenceExpression) {
 				// static method
 				if (m.Has("declaringType"))
-					convertedTarget = new TypeReferenceExpression(m.Get<AstType>("declaringType").Single().Clone());
+                    convertedTarget = new TypeReferenceExpression(m.Single<AstType>("declaringType").Clone());
 				else
 					convertedTarget = new TypeReferenceExpression(AstBuilder.ConvertType(mr.DeclaringType));
 			} else {
@@ -446,7 +446,7 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 				case 3:
 					Match m = getMethodFromHandlePattern.Match(invocation.Arguments.ElementAt(2));
 					if (m.Success)
-						return boe.WithAnnotation(m.Get<AstNode>("method").Single().Annotation<MethodReference>());
+                        return boe.WithAnnotation(m.Single<AstNode>("method").Annotation<MethodReference>());
 					else
 						return null;
 				case 4:
@@ -454,7 +454,7 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 						return null;
 					m = getMethodFromHandlePattern.Match(invocation.Arguments.ElementAt(3));
 					if (m.Success)
-						return boe.WithAnnotation(m.Get<AstNode>("method").Single().Annotation<MethodReference>());
+                        return boe.WithAnnotation(m.Single<AstNode>("method").Annotation<MethodReference>());
 					else
 						return null;
 				default:
@@ -490,7 +490,7 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 				case 2:
 					Match m = getMethodFromHandlePattern.Match(invocation.Arguments.ElementAt(1));
 					if (m.Success)
-						return uoe.WithAnnotation(m.Get<AstNode>("method").Single().Annotation<MethodReference>());
+                        return uoe.WithAnnotation(m.Single<AstNode>("method").Annotation<MethodReference>());
 					else
 						return null;
 				default:
@@ -531,15 +531,15 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 			Match m = newObjectCtorPattern.Match(invocation.Arguments.First());
 			if (!m.Success)
 				return NotSupported(invocation);
-			
-			MethodReference ctor = m.Get<AstNode>("ctor").Single().Annotation<MethodReference>();
+
+            MethodReference ctor = m.Single<AstNode>("ctor").Annotation<MethodReference>();
 			if (ctor == null)
 				return null;
 			
 			AstType declaringTypeNode;
 			TypeReference declaringType;
 			if (m.Has("declaringType")) {
-				declaringTypeNode = m.Get<AstType>("declaringType").Single().Clone();
+                declaringTypeNode = m.Single<AstType>("declaringType").Clone();
 				declaringType = declaringTypeNode.Annotation<TypeReference>();
 			} else {
 				declaringTypeNode = AstBuilder.ConvertType(ctor.DeclaringType);
@@ -661,7 +661,7 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 				string memberName;
 				Match m2 = getMethodFromHandlePattern.Match(bindingTarget);
 				if (m2.Success) {
-					MethodReference setter = m2.Get<AstNode>("method").Single().Annotation<MethodReference>();
+                    MethodReference setter = m2.Single<AstNode>("method").Annotation<MethodReference>();
 					if (setter == null)
 						return null;
 					memberName = GetPropertyName(setter);
@@ -707,7 +707,7 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 					case 3:
 						Match m = getMethodFromHandlePattern.Match(invocation.Arguments.ElementAt(2));
 						if (m.Success)
-							return cast.WithAnnotation(m.Get<AstNode>("method").Single().Annotation<MethodReference>());
+                            return cast.WithAnnotation(m.Single<AstNode>("method").Annotation<MethodReference>());
 						else
 							return null;
 				}
@@ -760,7 +760,7 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 		{
 			Match m = typeOfPattern.Match(typeOfExpression);
 			if (m.Success)
-				return m.Get<AstType>("type").Single().Clone();
+                return m.Single<AstType>("type").Clone();
 			else
 				return null;
 		}

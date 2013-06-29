@@ -146,7 +146,7 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 					negate = true;
 				}
 				if (m.Success) {
-					Expression expr = m.Get<Expression>("expr").Single().Detach().IsType(m.Get<AstType>("type").Single().Detach());
+                    Expression expr = m.Single<Expression>("expr").Detach().IsType(m.Single<AstType>("type").Detach());
 					if (negate)
 						expr = new UnaryOperatorExpression(UnaryOperatorType.Not, expr);
 					binaryOperatorExpression.ReplaceWith(expr);

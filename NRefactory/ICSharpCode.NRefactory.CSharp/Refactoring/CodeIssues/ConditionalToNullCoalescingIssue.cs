@@ -73,8 +73,8 @@ namespace ICSharpCode.NRefactory.CSharp.Refactoring
 			{
 				Match m = pattern.Match(conditionalExpression);
 				if (m.Success) {
-					var a = m.Get<Expression>("a").Single();
-					var other = m.Get<Expression>("other").Single();
+                    var a = m.Single<Expression>("a");
+                    var other = m.Single<Expression>("other");
 					AddIssue(conditionalExpression, ctx.TranslateString("Convert to '??' expression"), script => {
 						var expr = new BinaryOperatorExpression (a.Clone (), BinaryOperatorType.NullCoalescing, other.Clone ());
 						script.Replace (conditionalExpression, expr);

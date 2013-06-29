@@ -60,7 +60,34 @@ namespace ICSharpCode.NRefactory.PatternMatching
 				if (pair.Key == groupName)
 					yield return pair.Value;
 			}
-		}
+        }
+
+        /// <summary>
+        /// Gets last capture group or null if no group with given name found. 
+        /// </summary>
+        /// <param name="groupName">Name of the group for which has to be returned last occurence.</param>
+        /// <returns>Last occurence of the capture group or null if no group with given name found.</returns>
+        public INode LastOrDefault(string groupName)
+        {
+            var node = this.Get(groupName).LastOrDefault();
+            return node;
+        }
+
+        /// <summary>
+        /// Gets last capture group 
+        /// </summary>
+        /// <param name="groupName">Name of the group for which has to be returned last occurence.</param>
+        /// <returns>Last occurence of the capture group.</returns>
+        public INode Last(string groupName)
+        {
+            var backReferenceMatch = this.LastOrDefault(groupName);
+            if (backReferenceMatch == null)
+            {
+                throw new InvalidOperationException(string.Format("Backreference {0} could not be found", groupName));
+            }
+
+            return backReferenceMatch;
+        }
 		
 		public IEnumerable<T> Get<T>(string groupName) where T : INode
 		{
@@ -71,8 +98,79 @@ namespace ICSharpCode.NRefactory.PatternMatching
 					yield return (T)pair.Value;
 			}
 		}
-		
-		public bool Has(string groupName)
+
+        /// <summary>
+        /// Gets capture group as single entity or null if nothing captured.
+        /// </summary>
+        /// <typeparam name="T">Type of capture group.</typeparam>
+        /// <param name="groupName">Name of the capture group.</param>
+        /// <returns>Captured group if only one group with given name or null, if nothing captured.</returns>
+        /// <exception cref="InvalidOperationException">The group does not exist, or more then one instance of it exists.</exception>
+        public T SingleOrDefault<T>(string groupName) where T : INode
+        {
+            var groupNodes = this.Get<T>(groupName);
+            var node = groupNodes.FirstOrDefault();
+            if (node == null)
+            {
+                return default(T);
+            }
+
+            if (groupNodes.Skip(1).FirstOrDefault() != null)
+            {
+                throw new InvalidOperationException(string.Format("More the one capture of the group {0} exist.", groupName));
+            }
+
+            return node;
+        }
+
+        /// <summary>
+        /// Gets capture group as single entity.
+        /// </summary>
+        /// <typeparam name="T">Type of capture group.</typeparam>
+        /// <param name="groupName">Name of the capture group.</param>
+        /// <returns>Captured group if only one group with given name.</returns>
+        /// <exception cref="InvalidOperationException">The group does not exist, or more then one instance of it exists.</exception>
+        public T Single<T>(string groupName) where T : INode
+        {
+            var node = this.SingleOrDefault<T>(groupName);
+            if (node == null)
+            {
+                throw new InvalidOperationException(string.Format("Group name {0} could not be found", groupName));
+            }
+
+            return node;
+        }
+
+        /// <summary>
+        /// Gets first capture group or null if no group with given name found. 
+        /// </summary>
+        /// <typeparam name="T">Type of capture group.</typeparam>
+        /// <param name="groupName">Name of the group for which has to be returned first occurence.</param>
+        /// <returns>First occurence of the capture group or null if no group with given name found.</returns>
+        public T FirstOrDefault<T>(string groupName) where T : INode
+        {
+            var node = this.Get<T>(groupName).FirstOrDefault();
+            return node;
+        }
+
+        /// <summary>
+        /// Gets first capture group 
+        /// </summary>
+        /// <typeparam name="T">Type of capture group.</typeparam>
+        /// <param name="groupName">Name of the group for which has to be returned first occurence.</param>
+        /// <returns>First occurence of the capture group.</returns>
+        public T First<T>(string groupName) where T : INode
+        {
+            var backReferenceMatch = this.FirstOrDefault<T>(groupName);
+            if (backReferenceMatch == null)
+            {
+                throw new InvalidOperationException(string.Format("Group {0} could not be found", groupName));
+            }
+
+            return backReferenceMatch;
+        }
+
+        public bool Has(string groupName)
 		{
 			if (results == null)
 				return false;

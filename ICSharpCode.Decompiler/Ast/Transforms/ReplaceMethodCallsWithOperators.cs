@@ -356,14 +356,14 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 			// Handle methodof
 			Match m = getMethodOrConstructorFromHandlePattern.Match(castExpression);
 			if (m.Success) {
-				MethodReference method = m.Get<AstNode>("method").Single().Annotation<MethodReference>();
+                MethodReference method = m.Single<AstNode>("method").Annotation<MethodReference>();
 				if (m.Has("declaringType")) {
-					Expression newNode = m.Get<AstType>("declaringType").Single().Detach().Member(method.Name);
+                    Expression newNode = m.Single<AstType>("declaringType").Detach().Member(method.Name);
 					newNode = newNode.Invoke(method.Parameters.Select(p => new TypeReferenceExpression(AstBuilder.ConvertType(p.ParameterType, p))));
 					newNode.AddAnnotation(method);
-					m.Get<AstNode>("method").Single().ReplaceWith(newNode);
+                    m.Single<AstNode>("method").ReplaceWith(newNode);
 				}
-				castExpression.ReplaceWith(m.Get<AstNode>("ldtokenNode").Single());
+                castExpression.ReplaceWith(m.Single<AstNode>("ldtokenNode"));
 			}
 			return null;
 		}

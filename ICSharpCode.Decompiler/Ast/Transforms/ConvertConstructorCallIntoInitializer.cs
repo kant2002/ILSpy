@@ -103,14 +103,14 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 					Match m = fieldInitializerPattern.Match(instanceCtorsNotChainingWithThis[0].Body.FirstOrDefault());
 					if (!m.Success)
 						break;
-					
-					FieldDefinition fieldDef = m.Get<AstNode>("fieldAccess").Single().Annotation<FieldReference>().ResolveWithinSameModule();
+
+                    FieldDefinition fieldDef = m.Single<AstNode>("fieldAccess").Annotation<FieldReference>().ResolveWithinSameModule();
 					if (fieldDef == null)
 						break;
 					AstNode fieldOrEventDecl = members.FirstOrDefault(f => f.Annotation<FieldDefinition>() == fieldDef);
 					if (fieldOrEventDecl == null)
 						break;
-					Expression initializer = m.Get<Expression>("initializer").Single();
+                    Expression initializer = m.Single<Expression>("initializer");
 					// 'this'/'base' cannot be used in field initializers
 					if (initializer.DescendantsAndSelf.Any(n => n is ThisReferenceExpression || n is BaseReferenceExpression))
 						break;

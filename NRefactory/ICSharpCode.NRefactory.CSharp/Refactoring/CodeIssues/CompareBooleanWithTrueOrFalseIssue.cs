@@ -68,14 +68,14 @@ namespace ICSharpCode.NRefactory.CSharp.Refactoring
 				var match = pattern.Match (binaryOperatorExpression);
 				if (!match.Success)
 					return;
-				var expr = match.Get<Expression> ("expr").First ();
+				var expr = match.First<Expression>("expr");
 				// check if expr is of boolean type
 				var exprType = ctx.Resolve (expr).Type.GetDefinition ();
 				if (exprType == null || exprType.KnownTypeCode != KnownTypeCode.Boolean)
 					return;
 
 				AddIssue (binaryOperatorExpression, ctx.TranslateString ("Simplify boolean comparison"), scrpit => {
-					var boolConstant = (bool)match.Get<PrimitiveExpression> ("const").First ().Value;
+                    var boolConstant = (bool)match.First<PrimitiveExpression>("const").Value;
 					if ((binaryOperatorExpression.Operator == BinaryOperatorType.InEquality && boolConstant) ||
 						(binaryOperatorExpression.Operator == BinaryOperatorType.Equality && !boolConstant)) {
 						expr = new UnaryOperatorExpression (UnaryOperatorType.Not, expr.Clone());

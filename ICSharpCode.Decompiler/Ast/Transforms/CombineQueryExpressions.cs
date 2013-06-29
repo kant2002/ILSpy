@@ -70,8 +70,8 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 				} else {
 					Match m = castPattern.Match(fromClause.Expression);
 					if (m.Success) {
-						fromClause.Type = m.Get<AstType>("targetType").Single().Detach();
-						fromClause.Expression = m.Get<Expression>("inExpr").Single().Detach();
+                        fromClause.Type = m.Single<AstType>("targetType").Detach();
+                        fromClause.Expression = m.Single<Expression>("inExpr").Detach();
 					}
 				}
 			}
@@ -112,11 +112,11 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 			if (!match.Success)
 				return false;
 			QuerySelectClause selectClause = (QuerySelectClause)innerQuery.Clauses.Last();
-			NamedExpression nae1 = match.Get<NamedExpression>("nae1").SingleOrDefault();
-			NamedExpression nae2 = match.Get<NamedExpression>("nae2").SingleOrDefault();
+            NamedExpression nae1 = match.SingleOrDefault<NamedExpression>("nae1");
+            NamedExpression nae2 = match.SingleOrDefault<NamedExpression>("nae2");
 			if (nae1 != null && nae1.Name != ((IdentifierExpression)nae1.Expression).Identifier)
 				return false;
-			Expression nae2Expr = match.Get<Expression>("nae2Expr").Single();
+            Expression nae2Expr = match.Single<Expression>("nae2Expr");
 			IdentifierExpression nae2IdentExpr = nae2Expr as IdentifierExpression;
 			if (nae2IdentExpr != null && (nae2 == null || nae2.Name == nae2IdentExpr.Identifier)) {
 				// from * in (from x in ... select new { x = x, y = y }) ...

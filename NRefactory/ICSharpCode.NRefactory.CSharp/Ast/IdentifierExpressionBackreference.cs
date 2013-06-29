@@ -45,7 +45,7 @@ namespace ICSharpCode.NRefactory.CSharp
 			CSharp.IdentifierExpression ident = other as CSharp.IdentifierExpression;
 			if (ident == null || ident.TypeArguments.Any())
 				return false;
-			CSharp.AstNode referenced = (CSharp.AstNode)match.Get(referencedGroupName).Last();
+			CSharp.AstNode referenced = (CSharp.AstNode)match.Last(referencedGroupName);
 			if (referenced == null)
 				return false;
 			return ident.Identifier == referenced.GetChildByRole(CSharp.Roles.Identifier).Name;

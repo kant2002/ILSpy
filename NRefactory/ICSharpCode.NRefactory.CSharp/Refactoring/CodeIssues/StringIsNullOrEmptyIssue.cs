@@ -94,7 +94,7 @@ namespace ICSharpCode.NRefactory.CSharp.Refactoring
 					isNegated = true;
 				}
 				if (m.Success) {
-					var str = m.Get<Expression>("str").Single();
+                    var str = m.Single<Expression>("str");
 					AddIssue(binaryOperatorExpression, ctx.TranslateString("Use string.IsNullOrEmpty"), script => {
 						Expression expr = new PrimitiveType ("string").Invoke("IsNullOrEmpty", str.Clone());
 						if (isNegated)

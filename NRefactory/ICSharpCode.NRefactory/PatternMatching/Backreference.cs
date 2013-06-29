@@ -41,7 +41,8 @@ namespace ICSharpCode.NRefactory.PatternMatching
 		
 		public override bool DoMatch(INode other, Match match)
 		{
-			return match.Get(referencedGroupName).Last().IsMatch(other);
+            var referenedGroup = match.Last(referencedGroupName);
+            return referenedGroup.IsMatch(other);
 		}
 	}
 }
