@@ -892,15 +892,20 @@ namespace ICSharpCode.NRefactory.CSharp
 				throw new InvalidOperationException ("Cannot add annotations to the null node");
 			base.AddAnnotation (annotation);
 		}
-		
-		internal string DebugToString()
+
+        /// <summary>
+        /// Produce text output of the given <see cref="AstNode"/> for testing purposes.
+        /// </summary>
+        /// <param name="maxLength">Maximum length of the returned string.</param>
+        /// <returns>Debug representation of the node.</returns>
+        internal string DebugToString(int maxLength = 100)
 		{
 			if (IsNull)
 				return "Null";
 			string text = GetText();
 			text = text.TrimEnd().Replace("\t", "").Replace(Environment.NewLine, " ");
-			if (text.Length > 100)
-				return text.Substring(0, 97) + "...";
+            if (text.Length > maxLength)
+                return text.Substring(0, maxLength - 3) + "...";
 			else
 				return text;
 		}
