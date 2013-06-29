@@ -1,0 +1,84 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="go">
+	<PropertyGroup>
+		<ProjectDir Condition=" '$(ProjectDir)' == '' ">$(MSBuildProjectDirectory)\..\..</ProjectDir>
+		
+		<MSBuildCommunityTasksPath>$(ProjectDir)\BuildTools\MSBuildCommunityTasks</MSBuildCommunityTasksPath>
+		<ArtefactPrefix>ILSpy_</ArtefactPrefix>
+		
+		<!-- we cannot use <MSBuild> to build a solution because -->
+		<!-- A) passing properties to a solution called with <MSBuild> doesn't make the
+			properties available for the projects inside the solution 
+			(but this works using the command line) -->
+		<!-- C) We need to use MSBuild 4.0, but the build server uses MSBuild 2.0 -->
+		<MSBuildExecutable>&quot;$(MSBuildBinPath)\..\v4.0.30319\msbuild.exe&quot;</MSBuildExecutable>
+		<BuildProperties>$(ProjectDir)\</BuildProperties>
+		<BuildProperties>$(BuildProperties) $(AdditionalBuildProperties)</BuildProperties>
+		
+		<OutputDirectory>$(ProjectDir)\ICSharpCode.Decompiler\Tests\IL\Dlls\</OutputDirectory>
+		<IlDirectory>$(ProjectDir)\ICSharpCode.Decompiler\Tests\IL\Source\</IlDirectory>
+	</PropertyGroup>
+	
+	<Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
+
+	<Target Name="CoreCompile" Inputs="$(MSBuildAllProjects);@(Compile);" Outputs="%(Compile.Filename);$(NonExistentFile);">
+		<GetFrameworkPath>
+			<Output TaskParameter="Path" PropertyName="FrameworkPath" />
+		</GetFrameworkPath>
+		
+		<PropertyGroup Condition=" '$(AssemblyOriginatorKeyFile)' != '' " >
+			<IlAsmCommand>$(IlAsmCommand) /KEY:&quot;$(AssemblyOriginatorKeyFile)&quot; </IlAsmCommand>
+		</PropertyGroup>
+		<PropertyGroup Condition=" '$(OutputFileFormat)' == '' " >
+			<OutputFileFormat Condition="%(Compile.OutputFileFormat) != ''">%(Compile.OutputFileFormat)</OutputFileFormat>
+			<OutputFileFormat Condition="%(Compile.OutputFileFormat) == ''">DLL</OutputFileFormat>
+		</PropertyGroup>
+		
+        <CreateItem Condition="$(OutputFileFormat) == 'DLL'"
+            Include="$(OutputDirectory)%(Compile.Filename).dll"
+            AdditionalMetadata="PdbFileName=$(OutputDirectory)%(Compile.Filename).pdb">
+            <Output TaskParameter="Include" ItemName="FullOutputPath" />
+        </CreateItem>
+		
+        <CreateItem Condition="$(OutputFileFormat) == 'EXE'"
+            Include="$(OutputDirectory)%(Compile.Filename).exe"
+            AdditionalMetadata="PdbFileName=$(OutputDirectory)%(Compile.Filename).pdb">
+            <Output TaskParameter="Include" ItemName="FullOutputPath" />
+        </CreateItem>
+	
+		<PropertyGroup>
+			<IlAsmCommand>&quot;$(FrameworkPath)\Ilasm.exe&quot; /NOLOGO /$(OutputFileFormat) /OUTPUT:&quot;@(FullOutputPath)&quot;</IlAsmCommand>
+		</PropertyGroup>
+
+		<PropertyGroup Condition=" '$(Configuration)' == 'Debug' " >
+			<IlAsmCommand>$(IlAsmCommand) /DEBUG </IlAsmCommand>
+		</PropertyGroup>
+
+		<PropertyGroup Condition=" '$(Configuration)' == 'Release' " ><IlAsmCommand>$(IlAsmCommand) /OPTIMIZE </IlAsmCommand></PropertyGroup>
+
+		<PropertyGroup Condition=" '$(AssemblyOriginatorKeyFile)' != '' " >
+			<IlAsmCommand>$(IlAsmCommand) /KEY:&quot;$(AssemblyOriginatorKeyFile)&quot; </IlAsmCommand>
+		</PropertyGroup>
+
+		<Exec Command="$(IlAsmCommand) @(Compile->'&quot;%(FullPath)&quot;', ' ')" Outputs="%(Compile.Filename)" />
+		<Delete Files="%(FullOutputPath.PdbFileName)" />
+		
+		<CallTarget Targets="$(TargetsTriggeredByCompilation)" Condition="'$(TargetsTriggeredByCompilation)' != ''" />
+
+	</Target>
+	
+	<Target Name="GenTests" DependsOnTargets="BuildTestArea;CoreCompile"/>
+
+	<ItemGroup>
+		<!-- In order to generate EXE files, add OutputFileFormat metadata with value EXE to the item. -->
+		<Compile Include="$(IlDirectory)\LongStringSwitch.il" />
+	</ItemGroup>    
+	
+	<ItemGroup>
+		<MySpecialItem Include="Hello" />
+	</ItemGroup>    
+
+	<Target Name="BuildTestArea">
+		<MakeDir Directories="$(OutputDirectory)"/>
+	</Target>
+
+</Project>

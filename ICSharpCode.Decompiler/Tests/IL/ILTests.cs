@@ -33,8 +33,17 @@ namespace ICSharpCode.Decompiler.Tests
 		[Test]
 		public void SequenceOfNestedIfs()
 		{
-			Run("SequenceOfNestedIfs.dll", "SequenceOfNestedIfs.Output.cs");
+            Run("SequenceOfNestedIfs.dll", "SequenceOfNestedIfs.Output.cs");
 		}
+
+        /// <summary>
+        /// Test for the long string switch.
+        /// </summary>
+        [Test]
+        public void LongStringSwitch()
+        {
+            Run(@"Dlls\LongStringSwitch.dll", @"Decompiled\LongStringSwitch.cs");
+        }
 		
 		void Run(string compiledFile, string expectedOutputFile)
 		{

@@ -70,6 +70,7 @@
     <Compile Include="DoubleConstants.cs" />
     <Compile Include="ExpressionTrees.cs" />
     <None Include="IL\SequenceOfNestedIfs.Output.cs" />
+    <None Include="IL\Decompiled\LongStringSwitch.cs" />
     <Compile Include="IL\ILTests.cs" />
     <Compile Include="LiftedOperators.cs" />
     <Compile Include="CustomShortCircuitOperators.cs" />
@@ -85,6 +86,7 @@
     <Compile Include="YieldReturn.cs" />
     <None Include="IL\SequenceOfNestedIfs.dll" />
     <None Include="IL\SequenceOfNestedIfs.il" />
+    <None Include="IL\Source\LongStringSwitch.il" />
     <None Include="IL\StackTests.exe" />
     <None Include="IL\StackTests.il" />
     <None Include="packages.config" />
@@ -128,7 +130,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="IL" />
+    <Folder Include="IL\Dlls\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="BooleanConsumedAsInteger.il" />
