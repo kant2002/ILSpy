@@ -63,15 +63,35 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 			var arguments = invocationExpression.Arguments.ToArray();
 			
 			// Reduce "String.Concat(a, b)" to "a + b"
-			if (methodRef.Name == "Concat" && methodRef.DeclaringType.FullName == "System.String" && arguments.Length >= 2)
+			if (methodRef.Name == "Concat" && methodRef.DeclaringType.FullName == "System.String")
 			{
-				invocationExpression.Arguments.Clear(); // detach arguments from invocationExpression
-				Expression expr = arguments[0];
-				for (int i = 1; i < arguments.Length; i++) {
-					expr = new BinaryOperatorExpression(expr, BinaryOperatorType.Add, arguments[i]);
-				}
-				invocationExpression.ReplaceWith(expr);
-				return;
+                // Reduce "String.Concat(a, b)" to "a + b" when using specialized version of Concat method.
+                if (arguments.Length >= 2)
+                {
+                    invocationExpression.Arguments.Clear(); // detach arguments from invocationExpression
+                    Expression expr = arguments[0];
+                    for (int i = 1; i < arguments.Length; i++)
+                    {
+                        expr = new BinaryOperatorExpression(expr, BinaryOperatorType.Add, arguments[i]);
+                    }
+                    invocationExpression.ReplaceWith(expr);
+                    return;
+                }
+
+                // Reduce "String.Concat(new string[] { "a", "b", localvar, "c"})" to "a" + "b" + localvar + "c"
+                if (arguments.Length == 1 && arguments[0] is ArrayCreateExpression)
+                {
+                    var arrayCreateExpression = (ArrayCreateExpression)arguments[0];
+                    var elements = arrayCreateExpression.Initializer.Elements;
+                    Expression expr = elements.First().Clone();
+                    foreach (var nextExpr in elements.Skip(1))
+                    {
+                        expr = new BinaryOperatorExpression(expr, BinaryOperatorType.Add, nextExpr.Clone());
+                    }
+
+                    invocationExpression.ReplaceWith(expr);
+                    return;
+                }
 			}
 			
 			switch (methodRef.FullName) {
