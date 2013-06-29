@@ -151,7 +151,7 @@ namespace ICSharpCode.Decompiler.ILAst
 				group expr by v;
 			foreach (var g in q.ToArray()) {
 				ILVariable v = g.Key;
-				if (g.Count() == 1 && g.Single().Expression.GetSelfAndChildrenRecursive<ILExpression>().Count(e => e.Operand == v) == 1) {
+				if (g.Count() == 1 && g.Single().Expression.GetSelfAndChildrenRecursive<ILExpression>(e => e.Operand == v).Count == 1) {
 					singleLoadVariables.Add(v);
 					// Mark the assignments as dependent on the type from the single load:
 					foreach (var assignment in assignmentExpressions[v]) {
@@ -197,7 +197,7 @@ namespace ICSharpCode.Decompiler.ILAst
 				// Now infer types for variables:
 				foreach (var pair in assignmentExpressions) {
 					ILVariable v = pair.Key;
-					if (v.Type == null && (assignVariableTypesBasedOnPartialInformation ? pair.Value.Any(e => e.Done) : pair.Value.All(e => e.Done))) {
+					if (v.Type == null && (assignVariableTypesBasedOnPartialInformation ? pair.Value.Exists(e => e.Done) : pair.Value.TrueForAll(e => e.Done))) {
 						TypeReference inferredType = null;
 						foreach (ExpressionToInfer expr in pair.Value) {
 							Debug.Assert(expr.Expression.Code == ILCode.Stloc);
@@ -227,7 +227,7 @@ namespace ICSharpCode.Decompiler.ILAst
 		
 		void RunInference(ILExpression expr)
 		{
-			bool anyArgumentIsMissingExpectedType = expr.Arguments.Any(a => a.ExpectedType == null);
+			bool anyArgumentIsMissingExpectedType = expr.Arguments.Exists(a => a.ExpectedType == null);
 			if (expr.InferredType == null || anyArgumentIsMissingExpectedType)
 				InferTypeForExpression(expr, expr.ExpectedType, forceInferChildren: anyArgumentIsMissingExpectedType);
 			foreach (var arg in expr.Arguments) {
@@ -392,7 +392,9 @@ namespace ICSharpCode.Decompiler.ILAst
 					{
 						TypeReference type = (TypeReference)expr.Operand;
 						var argType = InferTypeForExpression(expr.Arguments[0], null);
-						if (argType is PointerType || argType is ByReferenceType) {
+						// because there is no ldind.u8 opcode, the type operand should behave as uint64 for pointer types if that is expected
+						if (argType is PointerType && expectedType != null && expectedType.MetadataType == MetadataType.UInt64 && type.MetadataType == MetadataType.Int64) type = expectedType;
+						else if (argType is PointerType || argType is ByReferenceType) {
 							var elementType = ((TypeSpecification)argType).ElementType;
 							int infoAmount = GetInformationAmount(elementType);
 							if (infoAmount == 1 && GetInformationAmount(type) == 8) {
@@ -450,7 +452,14 @@ namespace ICSharpCode.Decompiler.ILAst
 					return (TypeReference)expr.Operand;
 				case ILCode.Localloc:
 					if (forceInferChildren) {
-						InferTypeForExpression(expr.Arguments[0], typeSystem.Int32);
+						var arg = expr.Arguments[0];
+						InferTypeForExpression(arg, typeSystem.UIntPtr);
+						// C# stackalloc requires an int32 parameter while IL localloc requires an UIntPtr parameter, thus the C# compiler always inserts a conv.u IL instruction
+						if (arg.Code == ILCode.Mul_Ovf_Un) arg = arg.Arguments[0];
+						if (arg.Code == ILCode.Conv_U && (arg = arg.Arguments[0]).ExpectedType.MetadataType != MetadataType.Int32
+							&& arg.InferredType.MetadataType == MetadataType.Int32) {
+							InferTypeForExpression(arg, arg.InferredType);
+						}
 					}
 					if (expectedType is PointerType)
 						return expectedType;
@@ -661,20 +670,20 @@ namespace ICSharpCode.Decompiler.ILAst
 					{
 						ArrayType arrayType = InferTypeForExpression(expr.Arguments[0], null) as ArrayType;
 						if (forceInferChildren) {
-							InferTypeForExpression(expr.Arguments[1], typeSystem.Int32);
+							InferArrayIndexer(expr);
 						}
 						return arrayType != null ? arrayType.ElementType : null;
 					}
 				case ILCode.Ldelem_Any:
 					if (forceInferChildren) {
-						InferTypeForExpression(expr.Arguments[1], typeSystem.Int32);
+						InferArrayIndexer(expr);
 					}
 					return (TypeReference)expr.Operand;
 				case ILCode.Ldelema:
 					{
 						ArrayType arrayType = InferTypeForExpression(expr.Arguments[0], null) as ArrayType;
 						if (forceInferChildren)
-							InferTypeForExpression(expr.Arguments[1], typeSystem.Int32);
+							InferArrayIndexer(expr);
 						return arrayType != null ? new ByReferenceType(arrayType.ElementType) : null;
 					}
 				case ILCode.Stelem_I:
@@ -689,7 +698,7 @@ namespace ICSharpCode.Decompiler.ILAst
 					{
 						ArrayType arrayType = InferTypeForExpression(expr.Arguments[0], null) as ArrayType;
 						if (forceInferChildren) {
-							InferTypeForExpression(expr.Arguments[1], typeSystem.Int32);
+							InferArrayIndexer(expr);
 							if (arrayType != null) {
 								InferTypeForExpression(expr.Arguments[2], arrayType.ElementType);
 							}
@@ -889,18 +898,29 @@ namespace ICSharpCode.Decompiler.ILAst
 		
 		TypeReference HandleConversion(int targetBitSize, bool targetSigned, ILExpression arg, TypeReference expectedType, TypeReference targetType)
 		{
-			if (targetBitSize >= NativeInt && expectedType is PointerType) {
-				InferTypeForExpression(arg, expectedType);
-				return expectedType;
-			}
 			TypeReference argType = InferTypeForExpression(arg, null);
-			if (targetBitSize >= NativeInt && argType is ByReferenceType) {
-				// conv instructions on managed references mean that the GC should stop tracking them, so they become pointers:
-				PointerType ptrType = new PointerType(((ByReferenceType)argType).ElementType);
-				InferTypeForExpression(arg, ptrType);
-				return ptrType;
-			} else if (targetBitSize >= NativeInt && argType is PointerType) {
-				return argType;
+			if (targetBitSize == NativeInt) {
+				if (argType is ByReferenceType) {
+					// conv instructions on managed references mean that the GC should stop tracking them, so they become pointers:
+					var ptrType = expectedType as PointerType ?? new PointerType(((ByReferenceType)argType).ElementType);
+					InferTypeForExpression(arg, ptrType);
+					return ptrType;
+				}
+				if (argType is PointerType) {
+					if (expectedType is PointerType && !IsSameType(expectedType, argType)) {
+						InferTypeForExpression(arg, expectedType);
+						return expectedType;
+					}
+					return argType;
+				}
+				var argSize = GetInformationAmount(argType);
+				if (argSize >= 8 && argSize <= NativeInt) {
+					if (IsSigned(argType) == targetSigned || argSize < 32 && targetSigned) return targetType;
+					if (expectedType is PointerType) {
+						InferTypeForExpression(arg, expectedType);
+						return expectedType;
+					}
+				}
 			}
 			TypeReference resultType = (GetInformationAmount(expectedType) == targetBitSize && IsSigned(expectedType) == targetSigned) ? expectedType : targetType;
 			arg.ExpectedType = resultType; // store the expected type in the argument so that AstMethodBodyBuilder will insert a cast
@@ -1095,6 +1115,15 @@ namespace ICSharpCode.Decompiler.ILAst
 				left.InferredType = DoInferTypeForExpression(left, left.ExpectedType, forceInferChildren);
 				right.InferredType = DoInferTypeForExpression(right, right.ExpectedType, forceInferChildren);
 				return left.ExpectedType;
+			}
+		}
+
+		void InferArrayIndexer(ILExpression expr)
+		{
+			expr = expr.Arguments[1];
+			var type = InferTypeForExpression(expr, typeSystem.Int32);
+			if (type.MetadataType == MetadataType.IntPtr || type.MetadataType == MetadataType.UIntPtr) {
+				InferTypeForExpression(expr, type);
 			}
 		}
 		

@@ -131,7 +131,14 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 		
 		public override AstNode VisitTryCatchStatement(TryCatchStatement tryCatchStatement, object data)
 		{
-			return TransformTryCatchFinally(tryCatchStatement) ?? base.VisitTryCatchStatement(tryCatchStatement, data);
+			AstNode result = TransformTryCatchFinally(tryCatchStatement);
+			if(result != null) return result;
+			if(context.Settings.LockStatement)
+			{
+				result = TransformLegacyLock(tryCatchStatement);
+				if(result != null) return result;
+		}
+			return base.VisitTryCatchStatement(tryCatchStatement, data);
 		}
 		#endregion
 		
@@ -295,7 +302,7 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 		/// <summary>
 		/// Gets whether there is an assignment to 'variableName' anywhere within the given node.
 		/// </summary>
-		bool HasAssignment(AstNode root, string variableName)
+		static bool HasAssignment(AstNode root, string variableName)
 		{
 			foreach (AstNode node in root.DescendantsAndSelf) {
 				IdentifierExpression ident = node as IdentifierExpression;
@@ -400,13 +407,13 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 		#endregion
 		
 		#region foreach (non-generic)
-		ExpressionStatement getEnumeratorPattern = new ExpressionStatement(
+		static readonly ExpressionStatement getEnumeratorPattern = new ExpressionStatement(
 			new AssignmentExpression(
 				new NamedNode("left", new IdentifierExpression(Pattern.AnyString)),
 				new AnyNode("collection").ToExpression().Invoke("GetEnumerator")
 			));
 		
-		TryCatchStatement nonGenericForeachPattern = new TryCatchStatement {
+		static readonly TryCatchStatement nonGenericForeachPattern = new TryCatchStatement {
 			TryBlock = new BlockStatement {
 				new WhileStatement {
 					Condition = new IdentifierExpression(Pattern.AnyString).WithName("enumerator").Invoke("MoveNext"),
@@ -449,7 +456,7 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 			AstNode tryCatch = node.NextSibling;
 			Match m2 = nonGenericForeachPattern.Match(tryCatch);
 			if (!m2.Success) return null;
-
+			
             IdentifierExpression enumeratorVar = m2.Single<IdentifierExpression>("enumerator");
             IdentifierExpression itemVar = m2.Single<IdentifierExpression>("itemVar");
             WhileStatement loop = m2.Single<WhileStatement>("loop");
@@ -533,7 +540,7 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 				}
 			}};
 		
-		public ForStatement TransformFor(ExpressionStatement node)
+		static ForStatement TransformFor(ExpressionStatement node)
 		{
 			Match m1 = variableAssignPattern.Match(node);
 			if (!m1.Success) return null;
@@ -571,7 +578,7 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 				}
 			}};
 		
-		public DoWhileStatement TransformDoWhile(WhileStatement whileLoop)
+		static DoWhileStatement TransformDoWhile(WhileStatement whileLoop)
 		{
 			Match m = doWhilePattern.Match(whileLoop);
 			if (m.Success) {
@@ -638,10 +645,23 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 			AstNode tryCatch = node.NextSibling;
 			Match m2 = lockTryCatchPattern.Match(tryCatch);
 			if (!m2.Success) return null;
-            if (m1.Single<IdentifierExpression>("variable").Identifier == m2.Single<IdentifierExpression>("flag").Identifier)
-            {
-                Expression enter = m2.Single<Expression>("enter");
-                IdentifierExpression exit = m2.Single<IdentifierExpression>("exit");
+			if (m1.Get<IdentifierExpression>("variable").Single().Identifier == m2.Get<IdentifierExpression>("flag").Single().Identifier) {
+				var l = TransformLock(m2, m2);
+				if(l == null) return null;
+				// TODO: verify that 'flag' variable can be removed
+				l.EmbeddedStatement = ((TryCatchStatement)tryCatch).TryBlock.Detach();
+				((BlockStatement)l.EmbeddedStatement).Statements.First().Remove(); // Remove 'Enter()' call
+				tryCatch.ReplaceWith(l);
+				node.Remove(); // remove flag variable
+				return l;
+			}
+			return null;
+		}
+
+		static LockStatement TransformLock(Match m1, Match m2)
+		{
+			Expression enter = m1.Get<Expression>("enter").Single();
+			IdentifierExpression exit = m2.Get<IdentifierExpression>("exit").Single();
 				if (!exit.IsMatch(enter)) {
 					// If exit and enter are not the same, then enter must be "exit = ..."
 					AssignmentExpression assign = enter as AssignmentExpression;
@@ -652,18 +672,35 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 					enter = assign.Right;
 					// TODO: verify that 'obj' variable can be removed
 				}
-				// TODO: verify that 'flag' variable can be removed
 				// transform the code into a lock statement:
-				LockStatement l = new LockStatement();
-				l.Expression = enter.Detach();
-				l.EmbeddedStatement = ((TryCatchStatement)tryCatch).TryBlock.Detach();
-				((BlockStatement)l.EmbeddedStatement).Statements.First().Remove(); // Remove 'Enter()' call
-				tryCatch.ReplaceWith(l);
-				node.Remove(); // remove flag variable
+			return new LockStatement { Expression = enter.Detach() };
+		}
+
+		static readonly AstNode legacyLockInitPattern = new ExpressionStatement(
+			new TypePattern(typeof(System.Threading.Monitor)).ToType().Invoke("Enter", new AnyNode("enter")));
+
+		static readonly AstNode legacyLockTryCatchPattern = new TryCatchStatement
+		{
+			TryBlock = new BlockStatement { new Repeat(new AnyNode()).ToStatement() },
+			FinallyBlock = new BlockStatement {
+				new TypePattern(typeof(System.Threading.Monitor)).ToType().Invoke("Exit", new NamedNode("exit", new IdentifierExpression(Pattern.AnyString)))
+			}
+		};
+
+		static LockStatement TransformLegacyLock(TryCatchStatement node)
+		{
+			var invocation = node.PrevSibling;
+			var m1 = legacyLockInitPattern.Match(invocation);
+			if(!m1.Success) return null;
+			var m2 = legacyLockTryCatchPattern.Match(node);
+			if(!m2.Success) return null;
+			var l = TransformLock(m1, m2);
+			if(l == null) return null;
+			l.EmbeddedStatement = node.TryBlock.Detach();
+			node.ReplaceWith(l);
+			invocation.Remove(); // Remove 'Enter()' call
 				return l;
 			}
-			return null;
-		}
 		#endregion
 		
 		#region switch on strings
@@ -864,7 +901,7 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 					}
 				}}};
 		
-		PropertyDeclaration TransformAutomaticProperties(PropertyDeclaration property)
+		static PropertyDeclaration TransformAutomaticProperties(PropertyDeclaration property)
 		{
 			PropertyDefinition cecilProperty = property.Annotation<PropertyDefinition>();
 			if (cecilProperty == null || cecilProperty.GetMethod == null || cecilProperty.SetMethod == null)
@@ -885,7 +922,7 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 			return null;
 		}
 		
-		void RemoveCompilerGeneratedAttribute(AstNodeCollection<AttributeSection> attributeSections)
+		static void RemoveCompilerGeneratedAttribute(AstNodeCollection<AttributeSection> attributeSections)
 		{
 			foreach (AttributeSection section in attributeSections) {
 				foreach (var attr in section.Attributes) {
@@ -947,7 +984,7 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 					}}
 			}};
 		
-		bool CheckAutomaticEventV4Match(Match m, CustomEventDeclaration ev, bool isAddAccessor)
+		static bool CheckAutomaticEventV4Match(Match m, CustomEventDeclaration ev, bool isAddAccessor)
 		{
 			if (!m.Success)
 				return false;
@@ -961,7 +998,7 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 			return combineMethod.DeclaringType.FullName == "System.Delegate";
 		}
 		
-		EventDeclaration TransformAutomaticEvents(CustomEventDeclaration ev)
+		static EventDeclaration TransformAutomaticEvents(CustomEventDeclaration ev)
 		{
 			Match m1 = automaticEventPatternV4.Match(ev.AddAccessor);
 			if (!CheckAutomaticEventV4Match(m1, ev, true))
@@ -1041,7 +1078,7 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 		/// Simplify nested 'try { try {} catch {} } finally {}'.
 		/// This transformation must run after the using/lock tranformations.
 		/// </summary>
-		TryCatchStatement TransformTryCatchFinally(TryCatchStatement tryFinally)
+		static TryCatchStatement TransformTryCatchFinally(TryCatchStatement tryFinally)
 		{
 			if (tryCatchFinallyPattern.IsMatch(tryFinally)) {
 				TryCatchStatement tryCatch = (TryCatchStatement)tryFinally.TryBlock.Statements.Single();

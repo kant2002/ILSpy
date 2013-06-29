@@ -458,7 +458,7 @@ namespace ICSharpCode.Decompiler.ILAst
 					ILVariable v;
 					ILExpression copiedExpr;
 					if (block.Body[i].Match(ILCode.Stloc, out v, out copiedExpr)
-					    && !v.IsParameter && numStloc.GetOrDefault(v) == 1 && numLdloca.GetOrDefault(v) == 0
+					    && !v.IsParameter && !v.IsPinned && numStloc.GetOrDefault(v) == 1 && numLdloca.GetOrDefault(v) == 0
 					    && CanPerformCopyPropagation(copiedExpr, v))
 					{
 						// un-inline the arguments of the ldArg instruction
@@ -469,8 +469,8 @@ namespace ICSharpCode.Decompiler.ILAst
 						}
 						
 						// perform copy propagation:
-						foreach (var expr in method.GetSelfAndChildrenRecursive<ILExpression>()) {
-							if (expr.Code == ILCode.Ldloc && expr.Operand == v) {
+						foreach (var expr in method.GetSelfAndChildrenRecursive<ILExpression>(e => e.Code == ILCode.Ldloc)) {
+							if (expr.Operand == v) {
 								expr.Code = copiedExpr.Code;
 								expr.Operand = copiedExpr.Operand;
 								for (int j = 0; j < uninlinedArgs.Length; j++) {
