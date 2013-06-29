@@ -959,17 +959,29 @@ namespace ICSharpCode.Decompiler.ILAst
 					return elementType != ptrType.ElementType ? new PointerType(elementType) : type;
 				}
 			}
+
 			GenericParameter gp = type as GenericParameter;
-			if (gp != null) {
-				if (member.DeclaringType is ArrayType) {
-					return ((ArrayType)member.DeclaringType).ElementType;
-				} else if (gp.Owner.GenericParameterType == GenericParameterType.Method) {
-					return ((GenericInstanceMethod)member).GenericArguments[gp.Position];
-				} else  {
-					return ((GenericInstanceType)member.DeclaringType).GenericArguments[gp.Position];
-				}
-			}
-			return type;
+            if (gp != null)
+            {
+                if (member.DeclaringType is ArrayType)
+                {
+                    return ((ArrayType)member.DeclaringType).ElementType;
+                }
+                else if (gp.Owner.GenericParameterType == GenericParameterType.Method)
+                {
+                    return ((GenericInstanceMethod)member).GenericArguments[gp.Position];
+                }
+                else if (gp.Owner.GenericParameterType == GenericParameterType.Type)
+                {
+                    return ((GenericInstanceType)member.DeclaringType).GenericArguments[gp.Position];
+                }
+                else
+                {
+                    throw new NotImplementedException("Member's declaring type was a " + member.DeclaringType.GetType().Name + " when substituting generic parameter " + gp);
+                }
+            }
+
+            return type;
 		}
 		
 		static TypeReference UnpackPointer(TypeReference pointerOrManagedReference)

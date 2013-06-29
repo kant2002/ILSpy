@@ -29,6 +29,37 @@ public static class Switch
 				return "Default";
 		}
 	}
+
+	public static string LongerShortSwitchOverString(string text)
+	{
+		switch (text) {
+			case "First case":
+				return "Text";
+			case "Second case":
+				return "Text2";
+			default:
+				return "Default";
+		}
+	}
+
+	public static string AnotherShortSwitchOverString(string text)
+	{
+		int i = 0;
+
+		switch (text) {
+			case "First case":
+				i = 1;
+				break;
+			case "Second case":
+				Console.WriteLine(i);
+				i = 2;
+				break;
+			default:
+				i = 3;
+				break;
+		}
+		return i + "th case";
+	}
 	
 	public static string SwitchOverString1(string text)
 	{
