@@ -62,7 +62,7 @@
 } // end of class <PrivateImplementationDetails>{4951B3B6-7505-4A86-A06E-D9F3F7248264}
 
 
-.class public auto ansi serializable beforefieldinit LongSwitchTest
+.class public auto ansi serializable beforefieldinit StringSwitchTest
        extends [mscorlib]System.Object
 {
   .method public hidebysig specialname rtspecialname 
@@ -73,7 +73,7 @@
     IL_0000:  ldarg.0
     IL_0001:  call       instance void  [mscorlib]System.Object::.ctor()
     IL_0006:  ret
-  } // end of method LongSwitchTest::.ctor
+  } // end of method StringSwitchTest::.ctor
 
   .method public hidebysig static 
 	string TestMethod (
@@ -94,11 +94,6 @@
 
 	IL_0000: ldsfld string [mscorlib]System.String::Empty
 	IL_0005: stloc.0
-
-	IL_0006: ldstr "Constant string"
-	IL_0007: ldstr "Another one"
-	IL_000c: call bool [mscorlib]System.String::op_Equality(string, string)
-	IL_0011: brfalse IL_01c0
 
 	IL_0016: ldarg.0
 	IL_0017: dup
@@ -250,6 +245,6 @@
 
 	IL_040b: ldloc.0
 	IL_040c: ret
-} // end of method LongSwitchTest::TestMethod
+} // end of method StringSwitchTest::TestMethod
 
-} // end of class LongSwitchTest
+} // end of class StringSwitchTest

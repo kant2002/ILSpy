@@ -71,6 +71,7 @@
     <Compile Include="ExpressionTrees.cs" />
     <None Include="IL\SequenceOfNestedIfs.Output.cs" />
     <None Include="IL\Decompiled\LongStringSwitch.cs" />
+    <None Include="IL\Decompiled\StringSwitch.cs" />
     <Compile Include="IL\ILTests.cs" />
     <Compile Include="LiftedOperators.cs" />
     <Compile Include="CustomShortCircuitOperators.cs" />
@@ -86,6 +87,7 @@
     <Compile Include="YieldReturn.cs" />
     <None Include="IL\SequenceOfNestedIfs.dll" />
     <None Include="IL\SequenceOfNestedIfs.il" />
+    <None Include="IL\Source\StringSwitch.il" />
     <None Include="IL\Source\LongStringSwitch.il" />
     <None Include="IL\StackTests.exe" />
     <None Include="IL\StackTests.il" />
@@ -129,11 +131,13 @@
       <Name>ICSharpCode.Decompiler</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="IL\Dlls\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="BooleanConsumedAsInteger.il" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="IL\Dlls\LongStringSwitch.dll" />
+    <Content Include="IL\Dlls\StringSwitch.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.Targets" />
 </Project>

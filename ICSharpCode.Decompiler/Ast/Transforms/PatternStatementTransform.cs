@@ -705,11 +705,12 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 		
 		#region switch on strings
 		static readonly IfElseStatement switchOnStringPattern = new IfElseStatement {
-			Condition = new BinaryOperatorExpression {
-				Left = new AnyNode("switchExpr"),
-				Operator = BinaryOperatorType.InEquality,
-				Right = new NullReferenceExpression()
-			},
+            //Condition = new BinaryOperatorExpression {
+            //    Left = new AnyNode("switchExpr"),
+            //    Operator = BinaryOperatorType.InEquality,
+            //    Right = new NullReferenceExpression()
+            //},            
+			Condition = new AnyNode("condition"),
 			TrueStatement = new BlockStatement {
 				new IfElseStatement {
 					Condition = new BinaryOperatorExpression {
@@ -740,30 +741,74 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 				new Repeat(new AnyNode("nonNullDefaultStmt")).ToStatement()
 			},
 			FalseStatement = new OptionalNode("nullStmt", new BlockStatement { Statements = { new Repeat(new AnyNode()) } })
-		};
+        };
+
+        static readonly IfElseStatement switchOnStringBeginPattern = new IfElseStatement
+        {
+            Condition = new AnyNode("cachedDict").ToExpression().Invoke(
+                "TryGetValue",
+                new NamedNode("switchVar", new IdentifierExpression(Pattern.AnyString)),
+                new DirectionExpression
+                {
+                    FieldDirection = FieldDirection.Out,
+                    Expression = new IdentifierExpression(Pattern.AnyString).WithName("intVar")
+                }),
+            TrueStatement = new BlockStatement
+            {
+                Statements = {
+							new NamedNode(
+								"switch", new SwitchStatement {
+									Expression = new IdentifierExpressionBackreference("intVar"),
+									SwitchSections = { new Repeat(new AnyNode()) }
+								})
+						}
+            }
+        };
+
+        static readonly IfElseStatement switchOnStringCacheCreationPattern = new IfElseStatement
+        {
+            Condition = new BinaryOperatorExpression
+            {
+                Left = new AnyNode("cachedDict"),
+                Operator = BinaryOperatorType.Equality,
+                Right = new NullReferenceExpression()
+            },
+            TrueStatement = new AnyNode("dictCreation")
+        };
 		
-		public SwitchStatement TransformSwitchOnString(IfElseStatement node)
+		public Statement TransformSwitchOnString(IfElseStatement node)
 		{
 			Match m = switchOnStringPattern.Match(node);
-			if (!m.Success)
-				return null;
+            Match cacheCreation = m;
+            if (!m.Success)
+            {
+                return null;
+            }
 
 			// switchVar must be the same as switchExpr; or switchExpr must be an assignment and switchVar the left side of that assignment
-            var switchVar = m.Single<INode>("switchVar");
-            var switchExpr = m.Single<INode>("switchExpr");
+            var switchVar = m.Single<INode>("switchVar");            
+            Expression switchExpr;
+            Expression ifCondition = null;
+            if (!ExtractSwitchExpressionFromIf(node.Condition, out switchExpr, out ifCondition))
+            {
+                return null;
+            }
+
             if (!switchVar.IsMatch(switchExpr))
             {
                 AssignmentExpression assign = switchExpr as AssignmentExpression;
                 if (!(assign != null && switchVar.IsMatch(assign.Left)))
 					return null;
 			}
+
             FieldReference cachedDictField = m.Single<AstNode>("cachedDict").Annotation<FieldReference>();
 			if (cachedDictField == null)
 				return null;
-            List<Statement> dictCreation = m.Single<BlockStatement>("dictCreation").Statements.ToList();
+
+            List<Statement> dictCreation = cacheCreation.Single<BlockStatement>("dictCreation").Statements.ToList();
 			List<KeyValuePair<string, int>> dict = BuildDictionary(dictCreation);
             SwitchStatement sw = m.Single<SwitchStatement>("switch");
-            sw.Expression = m.Single<Expression>("switchExpr").Detach();
+            sw.Expression = switchExpr.Detach();
 			foreach (SwitchSection section in sw.SwitchSections) {
 				List<CaseLabel> labels = section.CaseLabels.ToList();
 				section.CaseLabels.Clear();
@@ -801,9 +846,70 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 				section.Statements.Add(block);
 				sw.SwitchSections.Add(section);
 			}
-			node.ReplaceWith(sw);
-			return sw;
+
+            // Preserve additional if conditions if any was present in the IF statement.
+            if (ifCondition != null)
+            {
+                node.Condition.ReplaceWith(ifCondition);
+                var block = new BlockStatement();
+                block.Statements.Add(sw.Detach());
+                node.TrueStatement.ReplaceWith(block);
+                return node;
+            }
+            else
+            {
+                node.ReplaceWith(sw);
+                return sw;
+            }
 		}
+
+        /// <summary>
+        /// Extracts the 
+        /// </summary>
+        /// <param name="condition">Condition for the if statement from which should be extracted switch expression.</param>
+        /// <param name="switchExpr">Extracted switch expression.</param>
+        /// <param name="ifCondition">Additiontional if condition which should be preserved.</param>
+        /// <returns>True of switch expression is extracted; false if no switch condition found.</returns>
+        private static bool ExtractSwitchExpressionFromIf(Expression condition, out Expression switchExpr, out Expression ifCondition)
+        {
+            switchExpr = null;
+            ifCondition = null;
+            var switchExpressionPattern = new BinaryOperatorExpression
+            {
+                Left = new AnyNode("switchExpr"),
+                Operator = BinaryOperatorType.InEquality,
+                Right = new NullReferenceExpression()
+            };
+
+            var switchPatternMatch = switchExpressionPattern.Match(condition);
+            if (!switchPatternMatch.Success)
+            {
+                var andCondition = condition as BinaryOperatorExpression;
+                if (andCondition.Operator == BinaryOperatorType.ConditionalAnd)
+                {
+                    switchPatternMatch = switchExpressionPattern.Match(andCondition.Left);
+                    if (!switchPatternMatch.Success)
+                    {
+                        switchPatternMatch = switchExpressionPattern.Match(andCondition.Right);
+                        if (!switchPatternMatch.Success)
+                        {
+                            return false;
+                        }
+                        else
+                        {
+                            ifCondition = andCondition.Left;
+                        }
+                    }
+                    else
+                    {
+                        ifCondition = andCondition.Right;
+                    }
+                }
+            }
+
+            switchExpr = switchPatternMatch.Single<Expression>("switchExpr");
+            return true;
+        }
 		
 		List<KeyValuePair<string, int>> BuildDictionary(List<Statement> dictCreation)
 		{

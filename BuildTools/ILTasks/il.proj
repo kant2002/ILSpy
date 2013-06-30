@@ -66,19 +66,11 @@
 
 	</Target>
 	
-	<Target Name="GenTests" DependsOnTargets="BuildTestArea;CoreCompile"/>
+	<Target Name="GenTests" DependsOnTargets="CoreCompile"/>
 
 	<ItemGroup>
 		<!-- In order to generate EXE files, add OutputFileFormat metadata with value EXE to the item. -->
 		<Compile Include="$(IlDirectory)\LongStringSwitch.il" />
-	</ItemGroup>    
-	
-	<ItemGroup>
-		<MySpecialItem Include="Hello" />
-	</ItemGroup>    
-
-	<Target Name="BuildTestArea">
-		<MakeDir Directories="$(OutputDirectory)"/>
-	</Target>
-
+		<Compile Include="$(IlDirectory)\StringSwitch.il" />
+	</ItemGroup>
 </Project>
