@@ -136,14 +136,6 @@ public static class YieldReturn
 		}
 	}
 	
-	public static IEnumerable<Func<string>> YieldReturnWithAnonymousMethods1(IEnumerable<string> input)
-	{
-		foreach (string current in input)
-		{
-			yield return () => current;
-		}
-	}
-	
 	public static IEnumerable<Func<string>> YieldReturnWithAnonymousMethods2(IEnumerable<string> input)
 	{
 		foreach (string current in input)

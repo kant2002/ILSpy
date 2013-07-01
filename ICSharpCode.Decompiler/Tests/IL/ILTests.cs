@@ -39,7 +39,7 @@ namespace ICSharpCode.Decompiler.Tests
         /// <summary>
         /// Test for the string switch inside the if statement.
         /// </summary>
-        [Test]
+        [Test, Category("Switch tests")]
         public void LongStringSwitch()
         {
             Run(@"Dlls\LongStringSwitch.dll", @"Decompiled\LongStringSwitch.cs");
@@ -48,7 +48,7 @@ namespace ICSharpCode.Decompiler.Tests
         /// <summary>
         /// Test for the string switch.
         /// </summary>
-        [Test]
+        [Test, Category("Switch tests")]
         public void StringSwitch()
         {
             Run(@"Dlls\StringSwitch.dll", @"Decompiled\StringSwitch.cs");

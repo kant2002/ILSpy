@@ -53,18 +53,7 @@ public class CheckedUnchecked
 			}
 		}
 	}
-	
-	public void ForWithCheckedInitializerAndUncheckedIterator(int n)
-	{
-		checked
-		{
-			int i = n;
-			for (i -= 10; i < n; i = unchecked(i + 1))
-			{
-				n--;
-			}
-		}
-	}
+
 	public void ObjectCreationInitializerChecked() 
 	{
 		this.TestHelp(new
@@ -108,10 +97,5 @@ public class CheckedUnchecked
 	public T TestHelp<T>(T t, Func<T, T> f)
 	{
 		return f(t);
-	}
-	
-	public void CheckedInArrayCreationArgument(int a, int b)
-	{
-		Console.WriteLine(new int[checked(a + b)]);
 	}
 }
