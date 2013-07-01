@@ -55,14 +55,6 @@ public class Loops
 		}
 	}
 	
-//	public void ForEachOverArray(string[] array)
-//	{
-//		foreach (string text in array)
-//		{
-//			text.ToLower();
-//		}
-//	}
-	
 	public void ForOverArray(string[] array)
 	{
 		for (int i = 0; i < array.Length; i++)

@@ -182,11 +182,46 @@ public class CheckedUnchecked
 			TestFile(@"..\..\Tests\LiftedOperators.cs");
 		}
 		
-		[Test]
+		[Test, Category("Loops")]
 		public void Loops()
 		{
 			TestFile(@"..\..\Tests\Loops.cs");
 		}
+
+        [Test, Category("Loops")]
+        public void ForEachOverArray()
+        {
+            var codeToTest = @"
+using System;
+
+public class Loops
+{
+    public void ForEachOverArray(string[] array)
+    {
+        foreach (string text in array)
+        {
+            text.ToLower();
+        }
+    }
+}
+";
+            var expectedCode = @"
+using System;
+
+public class Loops
+{
+	public void ForEachOverArray(string[] array)
+    {
+        for (int i = 0; i < array.Length; i++)
+		{
+            string text = array[i];
+			text.ToLower();
+		}
+    }
+}
+";
+            TestCode(expectedCode, codeToTest);
+        }
 		
 		[Test]
 		public void MultidimensionalArray()
