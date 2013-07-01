@@ -10,19 +10,26 @@ namespace ICSharpCode.Decompiler.Tests.Helpers
 {
 	public class CodeAssert
 	{
-		public static void AreEqual(string input1, string input2)
+		public static void AreEqual(string expected, string actual, string additionalMessage = null)
 		{
 			var diff = new StringWriter();
-			if (!Compare(input1, input2, diff)) {
-				Assert.Fail(diff.ToString());
+			if (!Compare(expected, actual, diff)) {
+                if (additionalMessage == null)
+                {
+                    Assert.Fail(diff.ToString());
+                }
+                else
+                {
+                    Assert.Fail(additionalMessage + Environment.NewLine + diff.ToString());
+                }
 			}
 		}
 
-		static bool Compare(string input1, string input2, StringWriter diff)
+		static bool Compare(string expected, string actual, StringWriter diff)
 		{
 			var differ = new AlignedDiff<string>(
-				NormalizeAndSplitCode(input1),
-				NormalizeAndSplitCode(input2),
+				NormalizeAndSplitCode(expected),
+				NormalizeAndSplitCode(actual),
 				new CodeLineEqualityComparer(),
 				new StringSimilarityComparer(),
 				new StringAlignmentFilter());

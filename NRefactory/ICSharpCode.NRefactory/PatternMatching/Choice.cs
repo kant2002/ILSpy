@@ -35,12 +35,13 @@ namespace ICSharpCode.NRefactory.PatternMatching
 				throw new ArgumentNullException("alternative");
 			alternatives.Add(new NamedNode(name, alternative));
 		}
-		
-		public void Add(INode alternative)
+
+        public Choice Add(INode alternative)
 		{
 			if (alternative == null)
 				throw new ArgumentNullException("alternative");
 			alternatives.Add(alternative);
+            return this;
 		}
 		
 		public override bool DoMatch(INode other, Match match)

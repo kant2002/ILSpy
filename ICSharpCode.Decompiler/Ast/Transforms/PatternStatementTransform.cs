@@ -348,7 +348,12 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 						new AssignmentExpression {
 							Left = new IdentifierExpression(Pattern.AnyString).WithName("itemVariable"),
 							Operator = AssignmentOperatorType.Assign,
-							Right = new IdentifierExpressionBackreference("enumeratorVariable").ToExpression().Member("Current")
+							Right = new Choice()
+                                .Add(new IdentifierExpressionBackreference("enumeratorVariable").ToExpression().Member("Current"))
+                                .Add(new CastExpression() {
+                                    Type = new AnyNode(),
+                                    Expression = new IdentifierExpressionBackreference("enumeratorVariable").ToExpression().Member("Current")
+                                })
 						},
 						new Repeat(new AnyNode("statement")).ToStatement()
 					}

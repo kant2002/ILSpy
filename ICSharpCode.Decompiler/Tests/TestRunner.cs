@@ -20,9 +20,7 @@ using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using DiffLib;
 using ICSharpCode.Decompiler.Ast;
 using ICSharpCode.Decompiler.Tests.Helpers;
 using Microsoft.CSharp;
@@ -222,6 +220,86 @@ public class Loops
 ";
             TestCode(expectedCode, codeToTest);
         }
+
+        [Test, Category("Loops")]
+        public void ForEachOverOldTypedCollection()
+        {
+            var codeToTest = @"
+using System;
+using System.CodeDom;
+
+public class Loops
+{
+    public void ForEachOverOldTypedCollection(CodeAttributeArgumentCollection collection)
+    {
+        foreach (CodeAttributeArgument codeAttributeArgument in collection)
+        {
+            codeAttributeArgument.Name.ToLower();
+        }
+    }
+}
+";
+            var expectedCode = @"
+using System;
+using System.CodeDom;
+
+public class Loops
+{
+	public void ForEachOverOldTypedCollection(CodeAttributeArgumentCollection collection)
+    {
+        foreach (CodeAttributeArgument codeAttributeArgument in collection)
+        {
+            codeAttributeArgument.Name.ToLower();
+        }
+    }
+}
+";
+            TestCode(expectedCode, codeToTest);
+        }
+
+        [Test, Category("Loops")]
+        public void ForEachTypedCollectionWithCast()
+        {
+            var codeToTest = @"using System;
+using System.Management;
+public class Loops
+{
+    public static string ForEachTypedCollectionWithCast(string query, string field)
+    {
+	    ManagementObjectSearcher managementObjectSearcher = new ManagementObjectSearcher(""root\\CIMV2"", query);
+		foreach (ManagementObject managementObject in managementObjectSearcher.Get())
+		{
+			string text = Convert.ToString(managementObject[field]);
+			if (!string.IsNullOrEmpty(text))
+			{
+				return text;
+			}
+		}
+        return null;
+    }
+}
+";
+            var expectedCode = @"using System;
+using System.Management;
+public class Loops
+{
+    public static string ForEachTypedCollectionWithCast(string query, string field)
+    {
+	    ManagementObjectSearcher managementObjectSearcher = new ManagementObjectSearcher(""root\\CIMV2"", query);
+		foreach (ManagementObject managementObject in managementObjectSearcher.Get())
+		{
+			string value = Convert.ToString(managementObject[field]);
+			if (!string.IsNullOrEmpty(value))
+			{
+				return result;
+			}
+		}
+		return null;
+    }
+}
+";
+            TestCode(expectedCode, codeToTest);
+        }
 		
 		[Test]
 		public void MultidimensionalArray()
@@ -346,7 +424,7 @@ public class Yield
             StringWriter output = new StringWriter();
             decompiler.GenerateCode(new PlainTextOutput(output));
             var decompiledOutput = output.ToString();
-            CodeAssert.AreEqual(expectedCode, decompiledOutput);
+            CodeAssert.AreEqual(expectedCode, decompiledOutput, optimize ? "Optimized code failed" : "Not optimized code failed");
         }
 
 		static AssemblyDefinition Compile(string code, bool optimize, bool useDebug)
@@ -355,7 +433,9 @@ public class Yield
 			CompilerParameters options = new CompilerParameters();
 			options.CompilerOptions = "/unsafe /o" + (optimize ? "+" : "-") + (useDebug ? " /debug": "");
 			options.ReferencedAssemblies.Add("System.Core.dll");
-			CompilerResults results = provider.CompileAssemblyFromSource(options, code);
+            options.ReferencedAssemblies.Add("System.dll");
+            options.ReferencedAssemblies.Add("System.Management.dll");
+            CompilerResults results = provider.CompileAssemblyFromSource(options, code);
 			try {
 				if (results.Errors.Count > 0) {
 					StringBuilder b = new StringBuilder("Compiler error:");
