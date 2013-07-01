@@ -370,24 +370,47 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 			
 			// Find the declaration of the item variable:
 			// Because we look only outside the loop, we won't make the mistake of moving a captured variable across the loop boundary
-			VariableDeclarationStatement itemVarDecl = FindVariableDeclaration(loop, itemVar.Identifier);
+            Statement variableScopeSearchStatement = loop;
+            VariableDeclarationStatement itemVarDecl = FindVariableDeclaration(variableScopeSearchStatement, itemVar.Identifier);
+            if (itemVarDecl == null)
+            {
+                var innerLoopBlock = loop.EmbeddedStatement as BlockStatement;
+                if (innerLoopBlock == null)
+                {
+                    return null;
+                }
+
+                variableScopeSearchStatement = innerLoopBlock.Statements.ElementAt(1);
+                itemVarDecl = FindVariableDeclaration(variableScopeSearchStatement, itemVar.Identifier);
+            }
+
 			if (itemVarDecl == null || !(itemVarDecl.Parent is BlockStatement))
 				return null;
 			
 			// Now verify that we can move the variable declaration in front of the loop:
 			Statement declarationPoint;
-			CanMoveVariableDeclarationIntoStatement(itemVarDecl, loop, out declarationPoint);
+            CanMoveVariableDeclarationIntoStatement(itemVarDecl, variableScopeSearchStatement, out declarationPoint);
 			// We ignore the return value because we don't care whether we can move the variable into the loop
 			// (that is possible only with non-captured variables).
 			// We just care that we can move it in front of the loop:
-			if (declarationPoint != loop)
+            if (declarationPoint != variableScopeSearchStatement)
 				return null;
-			
-			BlockStatement newBody = new BlockStatement();
-			foreach (Statement stmt in m.Get<Statement>("variablesInsideLoop"))
-				newBody.Add(stmt.Detach());
-			foreach (Statement stmt in m.Get<Statement>("statement"))
-				newBody.Add(stmt.Detach());
+
+            BlockStatement newBody = new BlockStatement();
+            foreach (Statement stmt in m.Get<Statement>("variablesInsideLoop"))
+            {
+                // Remove variable declaration from the inner loop.
+                if (itemVarDecl == stmt)
+                {
+                    continue;
+                }
+
+                newBody.Add(stmt.Detach());
+            }
+            foreach (Statement stmt in m.Get<Statement>("statement"))
+            {
+                newBody.Add(stmt.Detach());
+            }
 			
 			ForeachStatement foreachStatement = new ForeachStatement {
 				VariableType = (AstType)itemVarDecl.Type.Clone(),
