@@ -35,22 +35,14 @@ namespace ICSharpCode.ILSpy.TreeNodes
             var sb = new StringBuilder();
             foreach (var c in identifier.ToCharArray())
             {
-                if (char.IsLetterOrDigit(c) || char.IsPunctuation(c) || char.IsSymbol(c))
+                if (char.IsLetterOrDigit(c) || char.IsPunctuation(c) || char.IsSymbol(c) || c == ' ')
                 {
                     sb.Append(c);
                 }
                 else
                 {
-                    if (c == ' ' 
-                        && (sb.ToString() == "out" || sb.ToString() == "ref"))
-                    {
-                        sb.Append(c);
-                    }
-                    else
-                    {
-                        sb.Append(@"\u");
-                        sb.AppendFormat("{0:X4}", (int)c);
-                    }
+                    sb.Append(@"\u");
+                    sb.AppendFormat("{0:X4}", (int)c);
                 }
             }
 
