@@ -18,68 +18,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 public static class DelegateConstruction
 {
-	class InstanceTests
-	{
-		public Action CaptureOfThis()
-		{
-			return delegate {
-				CaptureOfThis();
-			};
-		}
-		
-		public Action CaptureOfThisAndParameter(int a)
-		{
-			return delegate {
-				CaptureOfThisAndParameter(a);
-			};
-		}
-		
-		public Action CaptureOfThisAndParameterInForEach(int a)
-		{
-			foreach (int item in Enumerable.Empty<int>()) {
-				if (item > 0) {
-					return delegate {
-						CaptureOfThisAndParameter(item + a);
-					};
-				}
-			}
-			return null;
-		}
-		
-		public Action CaptureOfThisAndParameterInForEachWithItemCopy(int a)
-		{
-			foreach (int item in Enumerable.Empty<int>()) {
-				int copyOfItem = item;
-				if (item > 0) {
-					return delegate {
-						CaptureOfThisAndParameter(item + a + copyOfItem);
-					};
-				}
-			}
-			return null;
-		}
-		
-		public void LambdaInForLoop()
-		{
-			for (int i = 0; i < 100000; i++) {
-			    Bar(() => Foo());
-			}
-		}
-		
-		public int Foo()
-		{
-			return 0;
-		}
-		
-		public void Bar(Func<int> f)
-		{
-		}
-	}
-
 	public static void Test(this string a)
 	{
 	}
@@ -94,11 +35,6 @@ public static class DelegateConstruction
 		return new Action("abc".Test);
 	}
 
-	public static Action ExtensionMethodBoundOnNull()
-	{
-		return new Action(((string)null).Test);
-	}
-
 	public static object StaticMethod()
 	{
 		return new Func<Action>(DelegateConstruction.ExtensionMethodBound);
@@ -109,39 +45,32 @@ public static class DelegateConstruction
 		return new Func<string>("hello".ToUpper);
 	}
 
-	public static object InstanceMethodOnNull()
-	{
-		return new Func<string>(((string)null).ToUpper);
-	}
-
 	public static List<Action<int>> AnonymousMethodStoreWithinLoop()
 	{
-		List<Action<int>> list = new List<Action<int>>();
+		List<Action<int>> result = new List<Action<int>>();
 		for (int i = 0; i < 10; i++)
 		{
 			int counter;
-			list.Add(delegate(int x)
+            result.Add(delegate(int x)
 			         {
 			         	counter = x;
-			         }
-			        );
+			         });
 		}
-		return list;
+        return result;
 	}
 
 	public static List<Action<int>> AnonymousMethodStoreOutsideLoop()
 	{
-		List<Action<int>> list = new List<Action<int>>();
+        List<Action<int>> result = new List<Action<int>>();
 		int counter;
 		for (int i = 0; i < 10; i++)
 		{
-			list.Add(delegate(int x)
+            result.Add(delegate(int x)
 			         {
 			         	counter = x;
-			         }
-			        );
+			         });
 		}
-		return list;
+        return result;
 	}
 
 	public static Action StaticAnonymousMethodNoClosure()
@@ -160,12 +89,15 @@ public static class DelegateConstruction
 		// l is local in main method
 		// Ensure that the decompiler doesn't introduce name conflicts
 		List<Action<int>> list = new List<Action<int>>();
-		for (int l = 0; l < 10; l++) {
+		for (int l = 0; l < 10; l++) 
+        {
 			int i;
-			for (i = 0; i < 10; i++) {
-				list.Add(
-					delegate (int j) {
-						for (int k = 0; k < i; k += j) {
+			for (i = 0; i < 10; i++) 
+            {
+				list.Add(delegate(int j) 
+                    {
+						for (int k = 0; k < i; k += j) 
+                        {
 							Console.WriteLine();
 						}
 					});
@@ -176,30 +108,23 @@ public static class DelegateConstruction
 	public static void NameConflict2(int j)
 	{
 		List<Action<int>> list = new List<Action<int>>();
-		for (int k = 0; k < 10; k++) {
-			list.Add(
-				delegate(int i) {
-					Console.WriteLine(i);
-				});
+		for (int k = 0; k < 10; k++) 
+        {
+			list.Add(delegate(int i) 
+                {
+				    Console.WriteLine(i);
+			    });
 		}
 	}
 
 	public static Action<int> NameConflict3(int i)
 	{
-		return delegate(int j) {
-			for (int k = 0; k < j; k++) {
+		return delegate(int j) 
+        {
+			for (int k = 0; k < j; k++) 
+            {
 				Console.WriteLine(k);
 			}
 		};
-	}
-	
-	public static Func<int, Func<int, int>> CurriedAddition(int a)
-	{
-		return b => c => a + b + c;
-	}
-	
-	public static Func<int, Func<int, Func<int, int>>> CurriedAddition2(int a)
-	{
-		return b => c => d => a + b + c + d;
 	}
 }

@@ -38,7 +38,7 @@ namespace ICSharpCode.Decompiler.Tests
 			TestFile(@"..\..\Tests\Async.cs");
 		}
 		
-		[Test, Ignore("disambiguating overloads is not yet implemented")]
+		[Test]
 		public void CallOverloadedMethod()
 		{
 			TestFile(@"..\..\Tests\CallOverloadedMethod.cs");
@@ -119,13 +119,203 @@ public class CheckedUnchecked
 ";
             TestCode(expectedCode, codeToTest);
         }
-		
-		[Test, Ignore("Missing cast on null")]
+
+        [Test, Category("DelegateConstruction")]
 		public void DelegateConstruction()
 		{
 			TestFile(@"..\..\Tests\DelegateConstruction.cs");
 		}
+
+        [Test, Category("DelegateConstruction")]
+        public void DelegateConstructionInstanceMembersCaptureOfThis()
+        {
+            var codeToTest = @"
+using System;
+
+public class DelegateConstruction
+{
+	public Action CaptureOfThis()
+	{
+		return delegate 
+        {
+			this.CaptureOfThis();
+		};
+	}
+}
+";
+            TestCode(codeToTest, codeToTest);
+        }
+
+        [Test, Category("DelegateConstruction")]
+        public void DelegateConstructionInstanceMembersCaptureOfThisAndParameter()
+        {
+            var codeToTest = @"
+using System;
+using System.Linq;
+
+public class DelegateConstruction
+{
+	public Action CaptureOfThisAndParameter(int a)
+	{
+		return delegate 
+        {
+			this.CaptureOfThisAndParameter(a);
+		};
+	}
+}
+";
+            TestCode(codeToTest, codeToTest);
+        }
+
+        [Test, Category("DelegateConstruction")]
+        public void DelegateConstructionInstanceMembersCaptureOfThisAndParameterInForEach()
+        {
+            var codeToTest = @"
+using System;
+using System.Linq;
+
+public class DelegateConstruction
+{
+	public Action CaptureOfThisAndParameter(int a)
+	{
+		return delegate 
+        {
+			this.CaptureOfThisAndParameter(a);
+		};
+	}
+
+	public Action CaptureOfThisAndParameterInForEach(int a)
+	{
+		foreach (int item in Enumerable.Empty<int>()) 
+        {
+			if (item > 0)
+            {
+				return delegate 
+                {
+					this.CaptureOfThisAndParameter(item + a);
+				};
+			}
+		}
+		return null;
+	}
+}
+";
+            TestCode(codeToTest, codeToTest);
+        }
+
+        [Test, Category("DelegateConstruction")]
+        public void DelegateConstructionInstanceMembersCaptureOfThisAndParameterInForEachWithItemCopy()
+        {
+            var codeToTest = @"
+using System;
+using System.Linq;
+
+public class DelegateConstruction
+{
+	public Action CaptureOfThisAndParameter(int a)
+	{
+		return delegate 
+        {
+			this.CaptureOfThisAndParameter(a);
+		};
+	}
+
+	public Action CaptureOfThisAndParameterInForEachWithItemCopy(int a)
+	{
+		foreach (int item in Enumerable.Empty<int>()) 
+        {
+			int copyOfItem = item;
+			if (item > 0) 
+            {
+				return delegate 
+                {
+					this.CaptureOfThisAndParameter(item + a + copyOfItem);
+				};
+			}
+		}
+		return null;
+	}
+}
+";
+            TestCode(codeToTest, codeToTest);
+        }
+
+        [Test, Category("DelegateConstruction")]
+        public void DelegateConstructionInstanceMembersLambdaInForLoop()
+        {
+            var codeToTest = @"
+using System;
+
+public class DelegateConstruction
+{
+	public void LambdaInForLoop()
+	{
+		for (int i = 0; i < 100000; i++) 
+        {
+			this.Bar(() => this.Foo());
+		}
+	}
 		
+	public int Foo()
+	{
+		return 0;
+	}
+		
+	public void Bar(Func<int> f)
+	{
+	}
+}
+";
+            TestCode(codeToTest, codeToTest);
+        }
+
+        [Test, Category("DelegateConstruction")]
+        public void DelegateConstructionMethodBoundOnNull()
+        {
+            var codeToTest = @"
+using System;
+
+public static class DelegateConstruction
+{
+	public static void Test(this string a)
+	{
+	}
+
+    public static Action ExtensionMethodBoundOnNull()
+	{
+		return new Action(((string)null).Test);
+	}
+
+	public static object InstanceMethodOnNull()
+	{
+		return new Func<string>(((string)null).ToUpper);
+	}
+}
+";
+            TestCode(codeToTest, codeToTest);
+        }
+        [Test, Category("DelegateConstruction")]
+        public void DelegateConstructionTypeInference()
+        {
+            var codeToTest = @"
+using System;
+
+public static class DelegateConstruction
+{
+	public static Func<int, Func<int, int>> CurriedAddition(int a)
+	{
+		return b => c => a + b + c;
+	}
+	
+	public static Func<int, Func<int, Func<int, int>>> CurriedAddition2(int a)
+	{
+		return b => c => d => a + b + c + d;
+	}
+}
+";
+            TestCode(codeToTest, codeToTest);
+        }
+
 		[Test, Ignore("Not yet implemented")]
 		public void ExpressionTrees()
 		{
