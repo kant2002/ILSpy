@@ -279,8 +279,10 @@ public class Loops
     }
 }
 ";
-            var expectedCode = @"using System;
+            var expectedCode = @"
+using System;
 using System.Management;
+
 public class Loops
 {
     public static string ForEachTypedCollectionWithCast(string query, string field)
@@ -288,17 +290,42 @@ public class Loops
 	    ManagementObjectSearcher managementObjectSearcher = new ManagementObjectSearcher(""root\\CIMV2"", query);
 		foreach (ManagementObject managementObject in managementObjectSearcher.Get())
 		{
-			string value = Convert.ToString(managementObject[field]);
-			if (!string.IsNullOrEmpty(value))
+			string text = Convert.ToString(managementObject[field]);
+			if (!string.IsNullOrEmpty(text))
 			{
-				return result;
+				return text;
 			}
 		}
 		return null;
     }
 }
 ";
-            TestCode(expectedCode, codeToTest);
+            TestCode(expectedCode, codeToTest, true, false);
+            var expectedCodeUnoptimized = @"
+using System;
+using System.Management;
+
+public class Loops
+{
+    public static string ForEachTypedCollectionWithCast(string query, string field)
+    {
+	    ManagementObjectSearcher managementObjectSearcher = new ManagementObjectSearcher(""root\\CIMV2"", query);
+        string result;
+		foreach (ManagementObject managementObject in managementObjectSearcher.Get())
+		{
+			string value = Convert.ToString(managementObject[field]);
+			if (!string.IsNullOrEmpty(value))
+			{
+                result = value;
+				return result;
+			}
+		}
+        result = null;
+		return result;
+    }
+}
+";
+            TestCode(expectedCodeUnoptimized, codeToTest, false, false);
         }
 		
 		[Test]
