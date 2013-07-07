@@ -41,8 +41,16 @@ namespace ICSharpCode.ILSpy.TreeNodes
                 }
                 else
                 {
-                    sb.Append(@"\u");
-                    sb.AppendFormat("{0:X4}", (int)c);
+                    if (c == ' ' 
+                        && (sb.ToString() == "out" || sb.ToString() == "ref"))
+                    {
+                        sb.Append(c);
+                    }
+                    else
+                    {
+                        sb.Append(@"\u");
+                        sb.AppendFormat("{0:X4}", (int)c);
+                    }
                 }
             }
 
