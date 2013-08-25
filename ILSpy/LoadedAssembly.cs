@@ -246,13 +246,22 @@ namespace ICSharpCode.ILSpy
 				// Call this method on the GUI thread.
 				return (LoadedAssembly)App.Current.Dispatcher.Invoke(DispatcherPriority.Normal, new Func<string, LoadedAssembly>(LookupWinRTMetadata), name);
 			}
-			
-			string file = Path.Combine(Environment.SystemDirectory, "WinMetadata", name + ".winmd");
-			if (File.Exists(file)) {
-				return assemblyList.OpenAssembly(file);
-			} else {
-				return null;
-			}
+
+            var programFiles86 = Environment.GetEnvironmentVariable("ProgramFiles(x86)");
+            string[] lookupFolders = new string[] {
+                Path.Combine(Environment.SystemDirectory, "WinMetadata"),
+                Path.Combine(programFiles86, @"Windows Kits\8.0\References\CommonConfiguration\Neutral")
+            };
+
+            foreach (var lookupFolder in lookupFolders)
+	        {
+                string file = Path.Combine(lookupFolder, name + ".winmd");
+			    if (File.Exists(file)) {
+				    return assemblyList.OpenAssembly(file);
+			    } 
+	        }
+
+			return null;
 		}
 		
 		public Task ContinueWhenLoaded(Action<Task<ModuleDefinition>> onAssemblyLoaded, TaskScheduler taskScheduler)
