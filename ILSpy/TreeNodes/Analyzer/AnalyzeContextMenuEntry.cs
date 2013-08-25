@@ -31,7 +31,13 @@ namespace ICSharpCode.ILSpy.TreeNodes.Analyzer
 		{
 			if (context.SelectedTreeNodes == null)
 				return context.Reference != null && context.Reference.Reference is MemberReference;
-			return context.SelectedTreeNodes.All(n => n is IMemberTreeNode);
+			var allMembersSelected = context.SelectedTreeNodes.All(n => n is IMemberTreeNode);
+            if (context.TreeView is AnalyzerTreeView)
+            {
+                return allMembersSelected && context.SelectedTreeNodes.All(_ => _.Level > 1);
+            }
+
+            return allMembersSelected;
 		}
 
 		public bool IsEnabled(TextViewContext context)
