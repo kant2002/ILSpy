@@ -77,6 +77,7 @@
     <Compile Include="Ast\Transforms\OperatorCastRemoval.cs" />
     <Compile Include="Ast\Transforms\ReplaceMethodCallsWithOperators.cs" />
     <Compile Include="Ast\Transforms\PushNegation.cs" />
+    <Compile Include="Ast\Transforms\ResolveOverloads.cs" />
     <Compile Include="Ast\Transforms\TransformationPipeline.cs" />
     <Compile Include="Ast\Transforms\PatternStatementTransform.cs" />
     <Compile Include="Ast\TypesHierarchyHelpers.cs" />

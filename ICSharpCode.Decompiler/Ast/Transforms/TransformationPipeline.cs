@@ -35,6 +35,9 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 				new PushNegation(),
 				new DelegateConstruction(context),
 				new PatternStatementTransform(context),
+#if DEBUG && DEBUG_RESOLVE_OVERLOADS
+                new ResolveOverloads(context),
+#endif
                 new OperatorCastRemoval(context),
 				new ReplaceMethodCallsWithOperators(context),
 				new IntroduceUnsafeModifier(),
