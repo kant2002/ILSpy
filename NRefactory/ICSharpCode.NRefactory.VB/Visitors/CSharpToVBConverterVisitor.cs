@@ -843,7 +843,22 @@ namespace ICSharpCode.NRefactory.VB.Visitors
 			var newNamespace = new NamespaceDeclaration();
 			
 			ConvertNodes(namespaceDeclaration.Identifiers, newNamespace.Identifiers);
-			ConvertNodes(namespaceDeclaration.Members, newNamespace.Members);
+            foreach (var node in namespaceDeclaration.Children)
+            {
+                if (node.Role == CSharp.Roles.Comment)
+                {
+                    var n = (VB.Comment)node.AcceptVisitor<object, VB.AstNode>(this, null);
+                    if (n != null)
+                        newNamespace.AddChild(n, AstNode.Roles.Comment);
+                }
+
+                if (node.Role == CSharp.NamespaceDeclaration.MemberRole)
+                {
+                    var n = node.AcceptVisitor<object, VB.AstNode>(this, null);
+                    if (n != null)
+                        newNamespace.AddChild(n, VB.Ast.NamespaceDeclaration.MemberRole);
+                }
+            }
 			
 			return EndNode(namespaceDeclaration, newNamespace);
 		}
@@ -867,8 +882,23 @@ namespace ICSharpCode.NRefactory.VB.Visitors
 				
 				type.Name = new Identifier(typeDeclaration.Name, TextLocation.Empty);
 				
-				ConvertNodes(typeDeclaration.Members, type.Members);
-				
+                foreach (var node in typeDeclaration.Children)
+                {
+                    if (node.Role == CSharp.Roles.Comment)
+                    {
+                        var n = (VB.Comment)node.AcceptVisitor<object, VB.AstNode>(this, null);
+                        if (n != null)
+                            type.AddChild(n, AstNode.Roles.Comment);
+                    }
+
+                    if (node.Role == CSharp.Roles.TypeMemberRole)
+                    {
+                        var n = (EnumMemberDeclaration)node.AcceptVisitor<object, VB.AstNode>(this, null);
+                        if (n != null)
+                            type.AddChild(n, VB.Ast.EnumDeclaration.MemberRole);
+                    }
+                }
+
 				return EndNode(typeDeclaration, type);
 			} else {
 				var type = new TypeDeclaration();
@@ -921,8 +951,25 @@ namespace ICSharpCode.NRefactory.VB.Visitors
 				type.Name = typeDeclaration.Name;
 				
 				types.Push(type);
-				ConvertNodes(typeDeclaration.Members, type.Members);
-				types.Pop();
+				// ConvertNodes(typeDeclaration.Members, type.Members);
+                foreach (var node in typeDeclaration.Children)
+                {
+                    if (node.Role == CSharp.Roles.Comment)
+                    {
+                        var n = (VB.Comment)node.AcceptVisitor<object, VB.AstNode>(this, null);
+                        if (n != null)
+                            type.AddChild(n, AstNode.Roles.Comment);
+                    }
+
+                    if (node.Role == CSharp.Roles.TypeMemberRole)
+                    {
+                        var n = (AttributedNode)node.AcceptVisitor<object, VB.AstNode>(this, null);
+                        if (n != null)
+                            type.AddChild(n, VB.Ast.TypeDeclaration.MemberRole);
+                    }
+                }
+
+                types.Pop();
 				
 				return EndNode(typeDeclaration, type);
 			}
@@ -2213,8 +2260,8 @@ namespace ICSharpCode.NRefactory.VB.Visitors
 		{
 			throw new NotImplementedException();
 		}
-		
-		void ConvertNodes<T>(IEnumerable<CSharp.AstNode> nodes, VB.AstNodeCollection<T> result, Func<T, T> transform = null) where T: VB.AstNode
+
+        void ConvertNodes<T>(IEnumerable<CSharp.AstNode> nodes, ICollection<T> result, Func<T, T> transform = null) where T : VB.AstNode
 		{
 			foreach (var node in nodes) {
 				T n = (T)node.AcceptVisitor(this, null);
