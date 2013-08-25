@@ -1765,7 +1765,9 @@ namespace ICSharpCode.NRefactory.VB
 		
 		public object VisitComment(Comment comment, object data)
 		{
+            formatter.StartNode(comment);
 			formatter.WriteComment(comment.IsDocumentationComment, comment.Content);
+            formatter.EndNode(comment);
 			return null;
 		}
 		

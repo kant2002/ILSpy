@@ -31,9 +31,11 @@ namespace ICSharpCode.ILSpy.VB
 	/// </summary>
 	public class VBTextOutputFormatter : IOutputFormatter
 	{
-		readonly ITextOutput output;
+        readonly ITextOutput output;
+        bool inDocumentationComment = false;
 		readonly Stack<AstNode> nodeStack = new Stack<AstNode>();
-		
+        bool firstUsingDeclaration;
+        bool lastUsingDeclaration;
 		public VBTextOutputFormatter(ITextOutput output)
 		{
 			if (output == null)
@@ -64,9 +66,27 @@ namespace ICSharpCode.ILSpy.VB
 //					}
 //				}
 //			}
-			
+            if (nodeStack.Count == 0)
+            {
+                if (IsUsingDeclaration(node))
+                {
+                    firstUsingDeclaration = !IsUsingDeclaration(node.PrevSibling);
+                    lastUsingDeclaration = !IsUsingDeclaration(node.NextSibling);
+                }
+                else
+                {
+                    firstUsingDeclaration = false;
+                    lastUsingDeclaration = false;
+                }
+            }
+
 			nodeStack.Push(node);
 		}
+
+        private bool IsUsingDeclaration(AstNode node)
+        {
+            return node is ImportsStatement || node is ImportsClause;
+        }
 		
 		public void EndNode(AstNode node)
 		{
@@ -100,7 +120,13 @@ namespace ICSharpCode.ILSpy.VB
 				return;
 			}
 
-			output.Write(identifier);
+            if (firstUsingDeclaration)
+            {
+                output.MarkFoldStart(defaultCollapsed: true);
+                firstUsingDeclaration = false;
+            }
+            
+            output.Write(identifier);
 		}
 
 		MemberReference GetCurrentMemberReference()
@@ -198,16 +224,40 @@ namespace ICSharpCode.ILSpy.VB
 		
 		public void NewLine()
 		{
-			output.WriteLine();
+            if (lastUsingDeclaration)
+            {
+                output.MarkFoldEnd();
+                lastUsingDeclaration = false;
+            }
+            
+            output.WriteLine();
 		}
 		
 		public void WriteComment(bool isDocumentation, string content)
 		{
-			if (isDocumentation)
-				output.Write("'''");
-			else
-				output.Write("'");
-			output.WriteLine(content);
+            if (isDocumentation)
+            {
+                // output.Write("'''");
+                bool isLastLine = !(nodeStack.Count > 0 && nodeStack.Peek().NextSibling is Comment);
+                if (!inDocumentationComment && !isLastLine)
+                {
+                    inDocumentationComment = true;
+                    output.MarkFoldStart("'''" + content, true);
+                }
+                output.Write("'''");
+                output.Write(content);
+                if (inDocumentationComment && isLastLine)
+                {
+                    inDocumentationComment = false;
+                    output.MarkFoldEnd();
+                }
+                output.WriteLine();
+            }
+            else
+            {
+                output.Write("'");
+                output.WriteLine(content);
+            }
 		}
 		
 		public void MarkFoldStart()
