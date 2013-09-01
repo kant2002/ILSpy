@@ -120,6 +120,9 @@
     <Compile Include="CreateListDialog.xaml.cs">
       <DependentUpon>CreateListDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Decompilation\CSharpProjectDecompiler.cs" />
+    <Compile Include="Decompilation\ProjectDecompiler.cs" />
+    <Compile Include="Decompilation\VBProjectDecompiler.cs" />
     <Compile Include="Languages\CSharpLanguage.cs" />
     <Compile Include="DecompilationOptions.cs" />
     <Compile Include="ExtensionMethods.cs" />
