@@ -257,14 +257,22 @@ namespace ICSharpCode.ILSpy
 					return module.Architecture.ToString();
 			}
 		}
+
+        string GetDefaultNamespace(ModuleDefinition module, DecompilationOptions options)
+        {
+            var types = module.Types.Where(t => IncludeTypeWhenDecompilingProject(t, options));
+            var group = types.GroupBy(t => FindFirstNamespacePart(t)).OrderByDescending(a => a.Count()).FirstOrDefault();
+            return group == null ? "" : group.Key;
+        }
 		
 		public override void DecompileAssembly(LoadedAssembly assembly, ITextOutput output, DecompilationOptions options)
 		{
 			if (options.FullDecompilation && options.SaveAsProjectDirectory != null) {
 				HashSet<string> directories = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-				var files = WriteCodeFilesInProject(assembly.ModuleDefinition, options, directories).ToList();
+                var defaultNamespace = GetDefaultNamespace(assembly.ModuleDefinition, options);
+                var files = WriteCodeFilesInProject(assembly.ModuleDefinition, options, directories, defaultNamespace).ToList();
 				files.AddRange(WriteResourceFilesInProject(assembly, options, directories));
-				WriteProjectFile(new TextOutputWriter(output), files, assembly.ModuleDefinition);
+				WriteProjectFile(new TextOutputWriter(output), files, assembly.ModuleDefinition, defaultNamespace);
 			} else {
 				base.DecompileAssembly(assembly, output, options);
 				output.WriteLine();
@@ -305,7 +313,7 @@ namespace ICSharpCode.ILSpy
 		}
 
 		#region WriteProjectFile
-		void WriteProjectFile(TextWriter writer, IEnumerable<Tuple<string, string>> files, ModuleDefinition module)
+		void WriteProjectFile(TextWriter writer, IEnumerable<Tuple<string, string>> files, ModuleDefinition module, string defaultNamespace)
 		{
 			const string ns = "http://schemas.microsoft.com/developer/msbuild/2003";
 			string platformName = GetPlatformName(module);
@@ -342,6 +350,7 @@ namespace ICSharpCode.ILSpy
 				}
 
 				w.WriteElementString("AssemblyName", module.Assembly.Name.Name);
+                w.WriteElementString("RootNamespace", defaultNamespace);
 				switch (module.Runtime) {
 					case TargetRuntime.Net_1_0:
 						w.WriteElementString("TargetFrameworkVersion", "v1.0");
@@ -441,8 +450,25 @@ namespace ICSharpCode.ILSpy
 				return new Tuple<string, string>[] { Tuple.Create("Compile", assemblyInfo) };
 			}
 		}
+        static string FindFirstNamespacePart(TypeDefinition type)
+        {
+            int index = type.Namespace.IndexOf('.');
+            return index > 0 ? type.Namespace.Substring(0, index) : type.Namespace;
+        }
 
-		IEnumerable<Tuple<string, string>> WriteCodeFilesInProject(ModuleDefinition module, DecompilationOptions options, HashSet<string> directories)
+        static string GetNamespaceFolder(string typeNamespace, string defaultNamespace)
+        {
+            string dname = TextView.DecompilerTextView.CleanUpName(defaultNamespace);
+            string name = TextView.DecompilerTextView.CleanUpName(typeNamespace);
+            name = name.Replace('.', Path.DirectorySeparatorChar);
+            if (name.StartsWith(dname + Path.DirectorySeparatorChar))
+                return name.Substring(dname.Length + 1);
+            else if (name == dname)
+                return "";
+            return name;
+        }
+
+		IEnumerable<Tuple<string, string>> WriteCodeFilesInProject(ModuleDefinition module, DecompilationOptions options, HashSet<string> directories, string defaultNamespace)
 		{
 			var files = module.Types.Where(t => IncludeTypeWhenDecompilingProject(t, options)).GroupBy(
 				delegate(TypeDefinition type) {
@@ -450,10 +476,14 @@ namespace ICSharpCode.ILSpy
 					if (string.IsNullOrEmpty(type.Namespace)) {
 						return file;
 					} else {
-						string dir = TextView.DecompilerTextView.CleanUpName(type.Namespace);
-						if (directories.Add(dir))
-							Directory.CreateDirectory(Path.Combine(options.SaveAsProjectDirectory, dir));
-						return Path.Combine(dir, file);
+                        string dir = GetNamespaceFolder(type.Namespace, defaultNamespace);
+                        if (dir.Length > 0)
+                        {
+                            if (directories.Add(dir))
+                                Directory.CreateDirectory(Path.Combine(options.SaveAsProjectDirectory, dir));
+                            return Path.Combine(dir, file);
+                        }
+                        return file;
 					}
 				}, StringComparer.OrdinalIgnoreCase).ToList();
 			AstMethodBodyBuilder.ClearUnhandledOpcodes();
