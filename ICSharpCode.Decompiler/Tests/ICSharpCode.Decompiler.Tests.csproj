@@ -66,6 +66,7 @@
     <Compile Include="Async.cs" />
     <Compile Include="CallOverloadedMethod.cs" />
     <Compile Include="CheckedUnchecked.cs" />
+    <Compile Include="CodeTest.cs" />
     <Compile Include="ControlFlow.cs" />
     <Compile Include="DoubleConstants.cs" />
     <Compile Include="ExpressionTrees.cs" />

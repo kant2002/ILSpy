@@ -16,15 +16,6 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-using System;
-using System.CodeDom.Compiler;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using ICSharpCode.Decompiler.Ast;
-using ICSharpCode.Decompiler.Tests.Helpers;
-using Microsoft.CSharp;
-using Mono.Cecil;
 using NUnit.Framework;
 
 namespace ICSharpCode.Decompiler.Tests
@@ -35,19 +26,19 @@ namespace ICSharpCode.Decompiler.Tests
 		[Test]
 		public void Async()
 		{
-			TestFile(@"..\..\Tests\Async.cs");
+            CodeTest.TestFile(@"..\..\Tests\Async.cs");
 		}
 		
 		[Test]
 		public void CallOverloadedMethod()
 		{
-			TestFile(@"..\..\Tests\CallOverloadedMethod.cs");
+            CodeTest.TestFile(@"..\..\Tests\CallOverloadedMethod.cs");
 		}
 		
 		[Test, Category("Checked & unchecked")]
 		public void CheckedUnchecked()
 		{
-			TestFile(@"..\..\Tests\CheckedUnchecked.cs");
+            CodeTest.TestFile(@"..\..\Tests\CheckedUnchecked.cs");
 		}
 
         [Test, Category("Checked")]
@@ -75,7 +66,7 @@ public class CheckedUnchecked
 	}
 }
 ";
-            TestCode(expectedCode, codeToTest);
+            CodeTest.TestCode(expectedCode, codeToTest);
         }
 
         [Test, Category("Checked")]
@@ -117,13 +108,13 @@ public class CheckedUnchecked
 	}
 }
 ";
-            TestCode(expectedCode, codeToTest);
+            CodeTest.TestCode(expectedCode, codeToTest);
         }
 
         [Test, Category("DelegateConstruction")]
 		public void DelegateConstruction()
 		{
-			TestFile(@"..\..\Tests\DelegateConstruction.cs");
+			CodeTest.TestFile(@"..\..\Tests\DelegateConstruction.cs");
 		}
 
         [Test, Category("DelegateConstruction")]
@@ -143,7 +134,7 @@ public class DelegateConstruction
 	}
 }
 ";
-            TestCode(codeToTest, codeToTest);
+            CodeTest.TestCode(codeToTest, codeToTest);
         }
 
         [Test, Category("DelegateConstruction")]
@@ -151,7 +142,6 @@ public class DelegateConstruction
         {
             var codeToTest = @"
 using System;
-using System.Linq;
 
 public class DelegateConstruction
 {
@@ -164,7 +154,7 @@ public class DelegateConstruction
 	}
 }
 ";
-            TestCode(codeToTest, codeToTest);
+            CodeTest.TestCode(codeToTest, codeToTest);
         }
 
         [Test, Category("DelegateConstruction")]
@@ -200,7 +190,7 @@ public class DelegateConstruction
 	}
 }
 ";
-            TestCode(codeToTest, codeToTest);
+            CodeTest.TestCode(codeToTest, codeToTest);
         }
 
         [Test, Category("DelegateConstruction")]
@@ -237,7 +227,7 @@ public class DelegateConstruction
 	}
 }
 ";
-            TestCode(codeToTest, codeToTest);
+            CodeTest.TestCode(codeToTest, codeToTest);
         }
 
         [Test, Category("DelegateConstruction")]
@@ -266,7 +256,7 @@ public class DelegateConstruction
 	}
 }
 ";
-            TestCode(codeToTest, codeToTest);
+            CodeTest.TestCode(codeToTest, codeToTest);
         }
 
         [Test, Category("DelegateConstruction")]
@@ -292,7 +282,7 @@ public static class DelegateConstruction
 	}
 }
 ";
-            TestCode(codeToTest, codeToTest);
+            CodeTest.TestCode(codeToTest, codeToTest);
         }
         [Test, Category("DelegateConstruction")]
         public void DelegateConstructionTypeInference()
@@ -313,67 +303,67 @@ public static class DelegateConstruction
 	}
 }
 ";
-            TestCode(codeToTest, codeToTest);
+            CodeTest.TestCode(codeToTest, codeToTest);
         }
 
 		[Test, Ignore("Not yet implemented")]
 		public void ExpressionTrees()
 		{
-			TestFile(@"..\..\Tests\ExpressionTrees.cs");
+            CodeTest.TestFile(@"..\..\Tests\ExpressionTrees.cs");
 		}
 		
 		[Test]
 		public void ExceptionHandling()
 		{
-			TestFile(@"..\..\Tests\ExceptionHandling.cs", optimize: false);
+            CodeTest.TestFile(@"..\..\Tests\ExceptionHandling.cs", optimize: false);
 		}
 		
 		[Test]
 		public void Generics()
 		{
-			TestFile(@"..\..\Tests\Generics.cs");
+            CodeTest.TestFile(@"..\..\Tests\Generics.cs");
 		}
 		
 		[Test]
 		public void CustomShortCircuitOperators()
 		{
-			TestFile(@"..\..\Tests\CustomShortCircuitOperators.cs");
+            CodeTest.TestFile(@"..\..\Tests\CustomShortCircuitOperators.cs");
 		}
 		
 		[Test]
 		public void ControlFlowWithDebug()
 		{
-			TestFile(@"..\..\Tests\ControlFlow.cs", optimize: false, useDebug: true);
+            CodeTest.TestFile(@"..\..\Tests\ControlFlow.cs", optimize: false, useDebug: true);
 		}
 		
 		[Test]
 		public void DoubleConstants()
 		{
-			TestFile(@"..\..\Tests\DoubleConstants.cs");
+            CodeTest.TestFile(@"..\..\Tests\DoubleConstants.cs");
 		}
 		
 		[Test]
 		public void IncrementDecrement()
 		{
-			TestFile(@"..\..\Tests\IncrementDecrement.cs");
+            CodeTest.TestFile(@"..\..\Tests\IncrementDecrement.cs");
 		}
 		
 		[Test]
 		public void InitializerTests()
 		{
-			TestFile(@"..\..\Tests\InitializerTests.cs");
+            CodeTest.TestFile(@"..\..\Tests\InitializerTests.cs");
 		}
 
 		[Test]
 		public void LiftedOperators()
 		{
-			TestFile(@"..\..\Tests\LiftedOperators.cs");
+            CodeTest.TestFile(@"..\..\Tests\LiftedOperators.cs");
 		}
 		
 		[Test, Category("Loops")]
 		public void Loops()
 		{
-			TestFile(@"..\..\Tests\Loops.cs");
+            CodeTest.TestFile(@"..\..\Tests\Loops.cs");
 		}
 
         [Test, Category("Loops")]
@@ -408,7 +398,7 @@ public class Loops
     }
 }
 ";
-            TestCode(expectedCode, codeToTest);
+            CodeTest.TestCode(expectedCode, codeToTest);
         }
 
         [Test, Category("Loops")]
@@ -444,7 +434,7 @@ public class Loops
     }
 }
 ";
-            TestCode(expectedCode, codeToTest);
+            CodeTest.TestCode(expectedCode, codeToTest);
         }
 
         [Test, Category("Loops")]
@@ -490,7 +480,7 @@ public class Loops
     }
 }
 ";
-            TestCode(expectedCode, codeToTest, true, false);
+            CodeTest.TestCode(expectedCode, codeToTest, true, false);
             var expectedCodeUnoptimized = @"
 using System;
 using System.Management;
@@ -515,61 +505,61 @@ public class Loops
     }
 }
 ";
-            TestCode(expectedCodeUnoptimized, codeToTest, false, false);
+            CodeTest.TestCode(expectedCodeUnoptimized, codeToTest, false, false);
         }
 		
 		[Test]
 		public void MultidimensionalArray()
 		{
-			TestFile(@"..\..\Tests\MultidimensionalArray.cs");
+            CodeTest.TestFile(@"..\..\Tests\MultidimensionalArray.cs");
 		}
 		
 		[Test]
 		public void PInvoke()
 		{
-			TestFile(@"..\..\Tests\PInvoke.cs");
+            CodeTest.TestFile(@"..\..\Tests\PInvoke.cs");
 		}
 		
 		[Test]
 		public void PropertiesAndEvents()
 		{
-			TestFile(@"..\..\Tests\PropertiesAndEvents.cs");
+            CodeTest.TestFile(@"..\..\Tests\PropertiesAndEvents.cs");
 		}
 		
 		[Test]
 		public void QueryExpressions()
 		{
-			TestFile(@"..\..\Tests\QueryExpressions.cs");
+            CodeTest.TestFile(@"..\..\Tests\QueryExpressions.cs");
 		}
 
         [Test, Category("Switch tests"), Ignore("switch transform doesn't recreate the exact original switch")]
 		public void Switch()
 		{
-			TestFile(@"..\..\Tests\Switch.cs");
+            CodeTest.TestFile(@"..\..\Tests\Switch.cs");
 		}
 		
 		[Test]
 		public void UndocumentedExpressions()
 		{
-			TestFile(@"..\..\Tests\UndocumentedExpressions.cs");
+            CodeTest.TestFile(@"..\..\Tests\UndocumentedExpressions.cs");
 		}
 		
 		[Test]
 		public void UnsafeCode()
 		{
-			TestFile(@"..\..\Tests\UnsafeCode.cs");
+            CodeTest.TestFile(@"..\..\Tests\UnsafeCode.cs");
 		}
 		
 		[Test]
 		public void ValueTypes()
 		{
-			TestFile(@"..\..\Tests\ValueTypes.cs");
+            CodeTest.TestFile(@"..\..\Tests\ValueTypes.cs");
 		}
 		
 		[Test, Category("Yield")]
 		public void YieldReturn()
 		{
-			TestFile(@"..\..\Tests\YieldReturn.cs");
+            CodeTest.TestFile(@"..\..\Tests\YieldReturn.cs");
 		}
 
         [Test, Category("Yield")]
@@ -605,67 +595,13 @@ public class Yield
 	}
 }
 ";
-            TestCode(expectedCode, codeToTest);
+            CodeTest.TestCode(expectedCode, codeToTest);
         }
 		
 		[Test]
 		public void TypeAnalysis()
 		{
-			TestFile(@"..\..\Tests\TypeAnalysisTests.cs");
-		}
-		
-		static void TestFile(string fileName, bool useDebug = false)
-		{
-			TestFile(fileName, false, useDebug);
-			TestFile(fileName, true, useDebug);
-		}
-
-        static void TestCode(string expectedCode, string codeToTest, bool useDebug = false)
-        {
-            TestCode(expectedCode, codeToTest, false, useDebug);
-            TestCode(expectedCode, codeToTest, true, useDebug);
-        }
-
-		static void TestFile(string fileName, bool optimize, bool useDebug = false)
-		{
-			string code = File.ReadAllText(fileName);
-            TestCode(code, code, optimize, useDebug);
-		}
-
-        private static void TestCode(string expectedCode, string codeToTest, bool optimize, bool useDebug)
-        {
-            AssemblyDefinition assembly = Compile(codeToTest, optimize, useDebug);
-            AstBuilder decompiler = new AstBuilder(new DecompilerContext(assembly.MainModule));
-            decompiler.AddAssembly(assembly);
-            new Helpers.RemoveCompilerAttribute().Run(decompiler.SyntaxTree);
-            StringWriter output = new StringWriter();
-            decompiler.GenerateCode(new PlainTextOutput(output));
-            var decompiledOutput = output.ToString();
-            CodeAssert.AreEqual(expectedCode, decompiledOutput, optimize ? "Optimized code failed" : "Not optimized code failed");
-        }
-
-		static AssemblyDefinition Compile(string code, bool optimize, bool useDebug)
-		{
-			CSharpCodeProvider provider = new CSharpCodeProvider(new Dictionary<string, string> { { "CompilerVersion", "v4.0" } });
-			CompilerParameters options = new CompilerParameters();
-			options.CompilerOptions = "/unsafe /o" + (optimize ? "+" : "-") + (useDebug ? " /debug": "");
-			options.ReferencedAssemblies.Add("System.Core.dll");
-            options.ReferencedAssemblies.Add("System.dll");
-            options.ReferencedAssemblies.Add("System.Management.dll");
-            CompilerResults results = provider.CompileAssemblyFromSource(options, code);
-			try {
-				if (results.Errors.Count > 0) {
-					StringBuilder b = new StringBuilder("Compiler error:");
-					foreach (var error in results.Errors) {
-						b.AppendLine(error.ToString());
-					}
-					throw new Exception(b.ToString());
-				}
-				return AssemblyDefinition.ReadAssembly(results.PathToAssembly);
-			} finally {
-				File.Delete(results.PathToAssembly);
-				results.TempFiles.Delete();
-			}
+            CodeTest.TestFile(@"..\..\Tests\TypeAnalysisTests.cs");
 		}
 	}
 }
