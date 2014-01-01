@@ -23,12 +23,20 @@
 					<RowDefinition Height="50" />
 				</Grid.RowDefinitions>
 				<Label Margin="3,0">Font:</Label>
-				<ComboBox x:Name="fontSelector" VerticalContentAlignment="Center" SelectedItem="{Binding SelectedFont}" Grid.Column="1">
-					<ComboBox.ItemTemplate>
-						<DataTemplate>
-							<TextBlock Text="{Binding Source}" />
-						</DataTemplate>
-					</ComboBox.ItemTemplate>
+				<ComboBox x:Name="fontSelector" VerticalContentAlignment="Center" SelectedItem="{Binding SelectedFont}" Grid.Column="1" DisplayMemberPath="Source">
+					<ComboBox.ItemContainerStyle>
+						<Style TargetType="{x:Type ComboBoxItem}">
+							<Setter Property="FontSize" Value="11pt" />
+							<Setter Property="MinHeight" Value="16pt" />
+							<Setter Property="FontFamily" Value="{Binding Source}" />
+							<Setter Property="Padding" Value="1,0" />
+						</Style>
+					</ComboBox.ItemContainerStyle>
+					<ComboBox.ItemsPanel>
+						<ItemsPanelTemplate>
+							<VirtualizingStackPanel IsVirtualizing="True" />
+						</ItemsPanelTemplate>
+					</ComboBox.ItemsPanel>
 				</ComboBox>
 				<Label Grid.Column="2" Margin="3,0">Size:</Label>
 				<ComboBox Grid.Column="3" Text="{Binding SelectedFontSize, Converter={StaticResource fontSizeConv}}" IsEditable="True" Margin="3,0">
