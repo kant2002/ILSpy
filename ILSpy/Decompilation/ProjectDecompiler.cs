@@ -117,9 +117,11 @@
                 {
                     var fullDecompilation = options.FullDecompilation;
                     options.FullDecompilation = false;
+                    var textOutput = new PlainTextOutput(w);
+                    textOutput.SetIndentationString(options.DecompilerSettings.IndentString);
                     this.language.DecompileAssembly(
-                        assembly, 
-                        new PlainTextOutput(w), 
+                        assembly,
+                        textOutput, 
                         options);
                     options.FullDecompilation = fullDecompilation;
                 }
@@ -164,7 +166,9 @@
                     {
                         var fullDecompilation = options.FullDecompilation;
                         options.FullDecompilation = false;
-                        this.language.DecompileType(file.First(), new PlainTextOutput(w), options);
+                        var textOutput = new PlainTextOutput(w);
+                        textOutput.SetIndentationString(options.DecompilerSettings.IndentString);
+                        this.language.DecompileType(file.First(), textOutput, options);
                         options.FullDecompilation = fullDecompilation;
                     }
                 });

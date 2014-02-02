@@ -43,7 +43,10 @@ namespace ICSharpCode.ILSpy
 						Exception exception = null;
 						using (var writer = new System.IO.StreamWriter("c:\\temp\\decompiled\\" + asm.ShortName + ".cs")) {
 							try {
-								new CSharpLanguage().DecompileAssembly(asm, new Decompiler.PlainTextOutput(writer), new DecompilationOptions { FullDecompilation = true, CancellationToken = ct });
+                                var options = new DecompilationOptions { FullDecompilation = true, CancellationToken = ct };
+                                var textOutput = new Decompiler.PlainTextOutput(writer);
+                                textOutput.SetIndentationString(options.DecompilerSettings.IndentString);
+								new CSharpLanguage().DecompileAssembly(asm, textOutput, options);
 							}
 							catch (Exception ex) {
 								writer.WriteLine(ex.ToString());

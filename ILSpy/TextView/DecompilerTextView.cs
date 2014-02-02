@@ -721,7 +721,9 @@ namespace ICSharpCode.ILSpy.TextView
 						stopwatch.Start();
 						using (StreamWriter w = new StreamWriter(fileName)) {
 							try {
-								DecompileNodes(context, new PlainTextOutput(w));
+                                var textOutput = new PlainTextOutput(w);
+                                textOutput.SetIndentationString(context.Options.DecompilerSettings.IndentString);
+								DecompileNodes(context, textOutput);
 							} catch (OperationCanceledException) {
 								w.WriteLine();
 								w.WriteLine("Decompiled was cancelled.");

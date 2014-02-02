@@ -265,7 +265,62 @@ namespace ICSharpCode.Decompiler
 					OnPropertyChanged("FoldBraces");
 				}
 			}
-		}
+        }
+
+        string indentString = "\t";
+
+        public string IndentString
+        {
+            get { return indentString; }
+            set
+            {
+                if (indentString != value)
+                {
+                    indentString = value;
+                    OnPropertyChanged("IndentString");
+                }
+            }
+        }
+
+        public bool UseTabs
+        {
+            get
+            {
+                return this.IndentString == "\t";
+            }
+
+            set
+            {
+                if (value)
+                {
+                    this.IndentString = "\t";
+                }
+                else
+                {
+                    this.IndentString = "    ";
+                }
+            }
+        }
+
+        public bool UseSpaces
+        {
+            get
+            {
+                return this.IndentString != "\t";
+            }
+
+            set
+            {
+                if (!value)
+                {
+                    this.IndentString = "\t";
+                }
+                else
+                {
+                    this.IndentString = "    ";
+                }
+            }
+        }
 		
 		#region Options to aid VB decompilation
 		bool introduceIncrementAndDecrement = true;
