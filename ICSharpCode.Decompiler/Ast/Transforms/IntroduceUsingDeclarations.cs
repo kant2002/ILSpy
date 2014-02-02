@@ -143,7 +143,6 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 			string currentNamespace;
 			HashSet<string> currentMemberTypes;
 			Dictionary<string, MemberReference> currentMembers;
-			bool isWithinTypeReferenceExpression;
 			
 			public FullyQualifyAmbiguousTypeNamesVisitor(IntroduceUsingDeclarations transform)
 			{
@@ -321,15 +320,7 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 				}
 				return null;
 			}
-			
-			public override object VisitTypeReferenceExpression(TypeReferenceExpression typeReferenceExpression, object data)
-			{
-				isWithinTypeReferenceExpression = true;
-				base.VisitTypeReferenceExpression(typeReferenceExpression, data);
-				isWithinTypeReferenceExpression = false;
-				return null;
-			}
-			
+						
 			bool IsAmbiguous(string ns, string name)
 			{
 				// If the type name conflicts with an inner class/type parameter, we need to fully-qualify it:
@@ -337,16 +328,10 @@ namespace ICSharpCode.Decompiler.Ast.Transforms
 					return true;
 				// If the type name conflicts with a field/property etc. on the current class, we need to fully-qualify it,
 				// if we're inside an expression.
-				if (isWithinTypeReferenceExpression && currentMembers != null) {
+				if (currentMembers != null) {
 					MemberReference mr;
 					if (currentMembers.TryGetValue(name, out mr)) {
-						// However, in the special case where the member is a field or property with the same type
-						// as is requested, then we can use the short name (if it's not otherwise ambiguous)
-						PropertyDefinition prop = mr as PropertyDefinition;
-						FieldDefinition field = mr as FieldDefinition;
-						if (!(prop != null && prop.PropertyType.Namespace == ns && prop.PropertyType.Name == name)
-						    && !(field != null && field.FieldType.Namespace == ns && field.FieldType.Name == name))
-							return true;
+						return true;
 					}
 				}
 				// If the type is defined in the current namespace,
