@@ -24,7 +24,11 @@ namespace ICSharpCode.Decompiler
 {
 	public sealed class PlainTextOutput : ITextOutput
 	{
-		readonly TextWriter writer;
+        /// <summary>
+        /// Identation string.
+        /// </summary>
+        private string indentString = "\t";
+        readonly TextWriter writer;
 		int indent;
 		bool needsIndent;
 		
@@ -37,6 +41,15 @@ namespace ICSharpCode.Decompiler
 				throw new ArgumentNullException("writer");
 			this.writer = writer;
 		}
+
+        /// <summary>
+        /// Sets string which will be used for the indentation.
+        /// </summary>
+        /// <param name="indentationString">String to be used for indentation.</param>
+        public void SetIndentationString(string indentationString)
+        {
+            this.indentString = indentationString;
+        }
 		
 		public PlainTextOutput()
 		{
@@ -69,7 +82,7 @@ namespace ICSharpCode.Decompiler
 			if (needsIndent) {
 				needsIndent = false;
 				for (int i = 0; i < indent; i++) {
-					writer.Write('\t');
+                    writer.Write(this.indentString);
 				}
 				column += indent;
 			}
